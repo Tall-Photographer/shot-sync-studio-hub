@@ -1,14 +1,17 @@
-
 import React, { useState } from 'react';
-import { Plus, Calendar, User, MapPin, DollarSign } from 'lucide-react';
+import { Plus, Calendar, User, MapPin, DollarSign, FileText, Edit, Receipt } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import QuotationDialog from './QuotationDialog';
+import NewBookingDialog from './NewBookingDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Bookings = () => {
   const [activeTab, setActiveTab] = useState('all');
+  const { toast } = useToast();
 
-  const bookings = [
+  const [bookings, setBookings] = useState([
     {
       id: 1,
       name: 'Sarah & John Wedding',
@@ -51,7 +54,27 @@ const Bookings = () => {
       paymentStatus: 'paid',
       notes: 'Golden hour session with 3 kids'
     }
-  ];
+  ]);
+
+  const handleBookingAdded = (newBooking: any) => {
+    setBookings(prev => [...prev, newBooking]);
+  };
+
+  const handleEditBooking = (bookingId: number) => {
+    console.log('Editing booking:', bookingId);
+    toast({
+      title: "Edit Booking",
+      description: "Opening edit dialog for booking"
+    });
+  };
+
+  const handleCreateInvoice = (booking: any) => {
+    console.log('Creating invoice for booking:', booking);
+    toast({
+      title: "Invoice Created",
+      description: `Invoice created for ${booking.name}`
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,10 +105,15 @@ const Bookings = () => {
       {/* Header */}
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-gray-900">Bookings</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          New Booking
-        </Button>
+        <NewBookingDialog
+          trigger={
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              New Booking
+            </Button>
+          }
+          onBookingAdded={handleBookingAdded}
+        />
       </div>
 
       {/* Tabs */}
@@ -174,11 +202,34 @@ const Bookings = () => {
                 <p className="text-sm text-gray-700">{booking.notes}</p>
               </div>
 
-              <div className="mt-3 flex space-x-2">
-                <Button size="sm" variant="outline" className="flex-1">
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleEditBooking(booking.id)}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="w-3 h-3" />
                   Edit
                 </Button>
-                <Button size="sm" variant="outline" className="flex-1">
+                
+                <QuotationDialog
+                  booking={booking}
+                  trigger={
+                    <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      <FileText className="w-3 h-3" />
+                      Quote
+                    </Button>
+                  }
+                />
+                
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleCreateInvoice(booking)}
+                  className="flex items-center gap-1"
+                >
+                  <Receipt className="w-3 h-3" />
                   Invoice
                 </Button>
               </div>
