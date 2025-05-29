@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,39 +17,74 @@ interface EditBookingDialogProps {
 const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDialogProps) => {
   const [open, setOpen] = useState(false);
   const [bookingData, setBookingData] = useState({
-    name: booking.name || '',
-    client: booking.client || '',
-    service: booking.service || '',
-    date: booking.date || '',
-    startTime: booking.time?.split(' - ')[0] || '',
-    endTime: booking.time?.split(' - ')[1] || '',
-    location: booking.location || '',
-    assignedTo: booking.assignedTo || '',
-    amount: booking.amount?.replace('$', '') || '',
-    paymentStatus: booking.paymentStatus || 'unpaid',
-    status: booking.status || 'pending',
-    notes: booking.notes || ''
+    name: '',
+    client: '',
+    service: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    location: '',
+    assignedTo: '',
+    amount: '',
+    expenses: '',
+    paymentStatus: 'unpaid',
+    notes: ''
   });
   const { toast } = useToast();
 
-  const clients = ['Sarah Johnson', 'Mike Davis', 'Emma Wilson', 'John Smith', 'Lisa Brown'];
-  const teamMembers = ['Alex Thompson', 'Emma Wilson', 'Mike Johnson', 'Sarah Davis'];
+  useEffect(() => {
+    if (booking && open) {
+      console.log('Loading booking data for edit:', booking);
+      setBookingData({
+        name: booking.name || '',
+        client: booking.client || '',
+        service: booking.service || '',
+        date: booking.date || '',
+        startTime: booking.time ? booking.time.split(' - ')[0] : '',
+        endTime: booking.time ? booking.time.split(' - ')[1] : '',
+        location: booking.location || '',
+        assignedTo: booking.assignedTo || '',
+        amount: booking.amount ? booking.amount.replace('$', '') : '',
+        expenses: booking.expenses ? booking.expenses.replace('$', '') : '',
+        paymentStatus: booking.paymentStatus || 'unpaid',
+        notes: booking.notes || ''
+      });
+    }
+  }, [booking, open]);
+
+  const clients = [
+    'Sarah Johnson',
+    'Mike Davis', 
+    'Emma Wilson',
+    'John Smith',
+    'Lisa Brown'
+  ];
+
+  const teamMembers = [
+    'Alex Thompson',
+    'Emma Wilson', 
+    'Mike Johnson',
+    'Sarah Davis'
+  ];
 
   const handleInputChange = (field: string, value: string) => {
+    console.log('Updating field:', field, 'with value:', value);
     setBookingData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting booking update:', bookingData);
     
     const updatedBooking = {
       ...booking,
       ...bookingData,
       amount: bookingData.amount ? `$${bookingData.amount}` : '$0',
+      expenses: bookingData.expenses ? `$${bookingData.expenses}` : '$0',
       time: `${bookingData.startTime} - ${bookingData.endTime}`
     };
 
-    console.log('Updating booking:', updatedBooking);
+    console.log('Updated booking:', updatedBooking);
     
     toast({
       title: "Booking Updated",
@@ -77,6 +112,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
               id="bookingName"
               value={bookingData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
+              placeholder="e.g., Sarah & John Wedding"
             />
           </div>
 
@@ -147,11 +183,12 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
               id="location"
               value={bookingData.location}
               onChange={(e) => handleInputChange('location', e.target.value)}
+              placeholder="Enter location"
             />
           </div>
 
           <div>
-            <Label htmlFor="assignedTo">Assigned Photographer</Label>
+            <Label htmlFor="assignedTo">Assigned Team Member</Label>
             <Select onValueChange={(value) => handleInputChange('assignedTo', value)} value={bookingData.assignedTo}>
               <SelectTrigger>
                 <SelectValue placeholder="Select team member" />
@@ -164,29 +201,29 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
             </Select>
           </div>
 
-          <div>
-            <Label htmlFor="amount">Amount ($)</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              value={bookingData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <Select onValueChange={(value) => handleInputChange('status', value)} value={bookingData.status}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="amount">Amount ($)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={bookingData.amount}
+                onChange={(e) => handleInputChange('amount', e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="expenses">Expenses ($)</Label>
+              <Input
+                id="expenses"
+                type="number"
+                step="0.01"
+                value={bookingData.expenses}
+                onChange={(e) => handleInputChange('expenses', e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
           </div>
 
           <div>
@@ -209,6 +246,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
               id="notes"
               value={bookingData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Additional notes..."
               rows={3}
             />
           </div>

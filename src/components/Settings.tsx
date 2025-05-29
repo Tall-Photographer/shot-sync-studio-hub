@@ -1,68 +1,138 @@
 
-import React, { useState } from 'react';
-import { Save, Key, Calendar, Users, Lock, Bell, Globe, Palette } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Save, Key, Shield, Bell, Palette, User } from 'lucide-react';
 
 const Settings = () => {
-  const [activeSection, setActiveSection] = useState('general');
-  const [settings, setSettings] = useState({
-    // API Keys
-    nomodApiKey: localStorage.getItem('nomod_api_key') || '',
-    googleCalendarApiKey: localStorage.getItem('google_calendar_api_key') || '',
-    
-    // Business Info
-    businessName: localStorage.getItem('business_name') || "Ahmed's Photography Studio",
-    businessEmail: localStorage.getItem('business_email') || '',
-    businessPhone: localStorage.getItem('business_phone') || '',
-    businessAddress: localStorage.getItem('business_address') || '',
-    
-    // Security
+  const { toast } = useToast();
+  
+  const [generalSettings, setGeneralSettings] = useState({
+    businessName: '',
+    businessEmail: '',
+    businessPhone: '',
+    businessAddress: '',
+    timezone: 'America/New_York',
+    currency: 'USD'
+  });
+
+  const [apiSettings, setApiSettings] = useState({
+    nomodApiKey: '',
+    googleCalendarApiKey: '',
+    stripeApiKey: '',
+    twilioApiKey: ''
+  });
+
+  const [securitySettings, setSecuritySettings] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    
-    // Notifications
+    twoFactorEnabled: false
+  });
+
+  const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
+    smsNotifications: false,
     pushNotifications: true,
     bookingReminders: true,
-    paymentAlerts: true,
-    
-    // App Settings
-    currency: 'USD',
-    timezone: 'America/New_York',
-    dateFormat: 'MM/DD/YYYY',
-    theme: 'light'
+    paymentAlerts: true
   });
-  const { toast } = useToast();
 
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
-  };
+  const [appearanceSettings, setAppearanceSettings] = useState({
+    theme: 'light',
+    language: 'en',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h'
+  });
 
-  const handleSave = () => {
-    // Save to localStorage
-    localStorage.setItem('nomod_api_key', settings.nomodApiKey);
-    localStorage.setItem('google_calendar_api_key', settings.googleCalendarApiKey);
-    localStorage.setItem('business_name', settings.businessName);
-    localStorage.setItem('business_email', settings.businessEmail);
-    localStorage.setItem('business_phone', settings.businessPhone);
-    localStorage.setItem('business_address', settings.businessAddress);
+  // Load settings from localStorage on component mount
+  useEffect(() => {
+    console.log('Loading settings from localStorage');
+    
+    const savedGeneral = localStorage.getItem('general_settings');
+    if (savedGeneral) {
+      setGeneralSettings(JSON.parse(savedGeneral));
+    }
 
-    console.log('Settings saved:', settings);
+    const savedApi = localStorage.getItem('api_settings');
+    if (savedApi) {
+      setApiSettings(JSON.parse(savedApi));
+    }
 
+    const savedNotifications = localStorage.getItem('notification_settings');
+    if (savedNotifications) {
+      setNotificationSettings(JSON.parse(savedNotifications));
+    }
+
+    const savedAppearance = localStorage.getItem('appearance_settings');
+    if (savedAppearance) {
+      setAppearanceSettings(JSON.parse(savedAppearance));
+    }
+
+    // Load individual API keys for backward compatibility
+    const nomodKey = localStorage.getItem('nomod_api_key');
+    const businessEmail = localStorage.getItem('business_email');
+    const businessPhone = localStorage.getItem('business_phone');
+    
+    if (nomodKey || businessEmail || businessPhone) {
+      setGeneralSettings(prev => ({
+        ...prev,
+        businessEmail: businessEmail || prev.businessEmail,
+        businessPhone: businessPhone || prev.businessPhone
+      }));
+      setApiSettings(prev => ({
+        ...prev,
+        nomodApiKey: nomodKey || prev.nomodApiKey
+      }));
+    }
+  }, []);
+
+  const handleGeneralSave = () => {
+    console.log('Saving general settings:', generalSettings);
+    localStorage.setItem('general_settings', JSON.stringify(generalSettings));
+    
+    // Save individual items for backward compatibility
+    localStorage.setItem('business_email', generalSettings.businessEmail);
+    localStorage.setItem('business_phone', generalSettings.businessPhone);
+    
     toast({
       title: "Settings Saved",
-      description: "Your settings have been saved successfully"
+      description: "General settings have been updated successfully"
     });
   };
 
-  const handleChangePassword = () => {
-    if (settings.newPassword !== settings.confirmPassword) {
+  const handleApiSave = () => {
+    console.log('Saving API settings:', apiSettings);
+    localStorage.setItem('api_settings', JSON.stringify(apiSettings));
+    
+    // Save individual API keys for backward compatibility
+    localStorage.setItem('nomod_api_key', apiSettings.nomodApiKey);
+    
+    toast({
+      title: "API Keys Saved",
+      description: "API keys have been updated successfully"
+    });
+  };
+
+  const handlePasswordChange = () => {
+    console.log('Changing password');
+    
+    if (!securitySettings.currentPassword) {
+      toast({
+        title: "Error",
+        description: "Please enter your current password",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (securitySettings.newPassword !== securitySettings.confirmPassword) {
       toast({
         title: "Error",
         description: "New passwords do not match",
@@ -71,14 +141,22 @@ const Settings = () => {
       return;
     }
 
-    console.log('Changing password...');
+    if (securitySettings.newPassword.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Simulate password change
     toast({
       title: "Password Changed",
       description: "Your password has been updated successfully"
     });
 
-    // Clear password fields
-    setSettings(prev => ({
+    setSecuritySettings(prev => ({
       ...prev,
       currentPassword: '',
       newPassword: '',
@@ -86,377 +164,387 @@ const Settings = () => {
     }));
   };
 
-  const testNomodConnection = async () => {
-    if (!settings.nomodApiKey) {
-      toast({
-        title: "Error",
-        description: "Please enter your Nomod API key first",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    console.log('Testing Nomod API connection with key:', settings.nomodApiKey);
+  const handleNotificationSave = () => {
+    console.log('Saving notification settings:', notificationSettings);
+    localStorage.setItem('notification_settings', JSON.stringify(notificationSettings));
     
     toast({
-      title: "Connection Test",
-      description: "Nomod API connection test completed"
+      title: "Notifications Updated",
+      description: "Notification preferences have been saved"
     });
   };
 
-  const sections = [
-    { id: 'general', label: 'General', icon: Users },
-    { id: 'api', label: 'API Keys', icon: Key },
-    { id: 'security', label: 'Security', icon: Lock },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'appearance', label: 'Appearance', icon: Palette }
-  ];
+  const handleAppearanceSave = () => {
+    console.log('Saving appearance settings:', appearanceSettings);
+    localStorage.setItem('appearance_settings', JSON.stringify(appearanceSettings));
+    
+    toast({
+      title: "Appearance Updated",
+      description: "Appearance settings have been saved"
+    });
+  };
 
   return (
     <div className="p-4 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-          <Save className="w-4 h-4 mr-2" />
-          Save Settings
-        </Button>
       </div>
 
-      {/* Settings Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
-        {sections.map((section) => {
-          const Icon = section.icon;
-          return (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                activeSection === section.id
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{section.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            General
+          </TabsTrigger>
+          <TabsTrigger value="api" className="flex items-center gap-2">
+            <Key className="w-4 h-4" />
+            API Keys
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Security
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="w-4 h-4" />
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Palette className="w-4 h-4" />
+            Appearance
+          </TabsTrigger>
+        </TabsList>
 
-      {/* General Settings */}
-      {activeSection === 'general' && (
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Business Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input
-                id="businessName"
-                value={settings.businessName}
-                onChange={(e) => handleInputChange('businessName', e.target.value)}
-                placeholder="Your business name"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="businessEmail">Business Email</Label>
-              <Input
-                id="businessEmail"
-                type="email"
-                value={settings.businessEmail}
-                onChange={(e) => handleInputChange('businessEmail', e.target.value)}
-                placeholder="your@business.com"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="businessPhone">Business Phone</Label>
-              <Input
-                id="businessPhone"
-                type="tel"
-                value={settings.businessPhone}
-                onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="businessAddress">Business Address</Label>
-              <Input
-                id="businessAddress"
-                value={settings.businessAddress}
-                onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                placeholder="123 Main St, City, State 12345"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle>Business Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="currency">Currency</Label>
-                <Select value={settings.currency} onValueChange={(value) => handleInputChange('currency', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input
+                  id="businessName"
+                  value={generalSettings.businessName}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessName: e.target.value }))}
+                  placeholder="Your Photography Studio"
+                />
               </div>
-              <div>
-                <Label htmlFor="timezone">Timezone</Label>
-                <Select value={settings.timezone} onValueChange={(value) => handleInputChange('timezone', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* API Configuration */}
-      {activeSection === 'api' && (
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="w-5 h-5" />
-              API Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="nomodApiKey">Nomod API Key</Label>
-              <div className="flex space-x-2">
+              <div>
+                <Label htmlFor="businessEmail">Business Email</Label>
+                <Input
+                  id="businessEmail"
+                  type="email"
+                  value={generalSettings.businessEmail}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessEmail: e.target.value }))}
+                  placeholder="contact@yourstudio.com"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="businessPhone">Business Phone</Label>
+                <Input
+                  id="businessPhone"
+                  type="tel"
+                  value={generalSettings.businessPhone}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessPhone: e.target.value }))}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="businessAddress">Business Address</Label>
+                <Input
+                  id="businessAddress"
+                  value={generalSettings.businessAddress}
+                  onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessAddress: e.target.value }))}
+                  placeholder="123 Main St, City, State 12345"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <Select onValueChange={(value) => setGeneralSettings(prev => ({ ...prev, timezone: value }))} value={generalSettings.timezone}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                      <SelectItem value="America/Chicago">Central Time</SelectItem>
+                      <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select onValueChange={(value) => setGeneralSettings(prev => ({ ...prev, currency: value }))} value={generalSettings.currency}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button onClick={handleGeneralSave} className="w-full">
+                <Save className="w-4 h-4 mr-2" />
+                Save General Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="api">
+          <Card>
+            <CardHeader>
+              <CardTitle>API Keys & Integrations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="nomodApiKey">Nomod API Key</Label>
                 <Input
                   id="nomodApiKey"
                   type="password"
-                  value={settings.nomodApiKey}
-                  onChange={(e) => handleInputChange('nomodApiKey', e.target.value)}
+                  value={apiSettings.nomodApiKey}
+                  onChange={(e) => setApiSettings(prev => ({ ...prev, nomodApiKey: e.target.value }))}
                   placeholder="Enter your Nomod API key"
-                  className="flex-1"
                 />
-                <Button 
-                  variant="outline" 
-                  onClick={testNomodConnection}
-                  disabled={!settings.nomodApiKey}
-                >
-                  Test
-                </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Used to generate payment links (deposit, remaining, full payment)
-              </p>
-            </div>
 
-            <div>
-              <Label htmlFor="googleCalendarApiKey">Google Calendar API Key</Label>
-              <Input
-                id="googleCalendarApiKey"
-                type="password"
-                value={settings.googleCalendarApiKey}
-                onChange={(e) => handleInputChange('googleCalendarApiKey', e.target.value)}
-                placeholder="Enter your Google Calendar API key"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Used to sync bookings to team members' Google Calendars
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div>
+                <Label htmlFor="googleCalendarApiKey">Google Calendar API Key</Label>
+                <Input
+                  id="googleCalendarApiKey"
+                  type="password"
+                  value={apiSettings.googleCalendarApiKey}
+                  onChange={(e) => setApiSettings(prev => ({ ...prev, googleCalendarApiKey: e.target.value }))}
+                  placeholder="Enter your Google Calendar API key"
+                />
+              </div>
 
-      {/* Security Settings */}
-      {activeSection === 'security' && (
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              Security Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={settings.currentPassword}
-                onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                placeholder="Enter current password"
-              />
-            </div>
+              <div>
+                <Label htmlFor="stripeApiKey">Stripe API Key</Label>
+                <Input
+                  id="stripeApiKey"
+                  type="password"
+                  value={apiSettings.stripeApiKey}
+                  onChange={(e) => setApiSettings(prev => ({ ...prev, stripeApiKey: e.target.value }))}
+                  placeholder="Enter your Stripe API key"
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={settings.newPassword}
-                onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                placeholder="Enter new password"
-              />
-            </div>
+              <div>
+                <Label htmlFor="twilioApiKey">Twilio API Key</Label>
+                <Input
+                  id="twilioApiKey"
+                  type="password"
+                  value={apiSettings.twilioApiKey}
+                  onChange={(e) => setApiSettings(prev => ({ ...prev, twilioApiKey: e.target.value }))}
+                  placeholder="Enter your Twilio API key"
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={settings.confirmPassword}
-                onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                placeholder="Confirm new password"
-              />
-            </div>
+              <Button onClick={handleApiSave} className="w-full">
+                <Save className="w-4 h-4 mr-2" />
+                Save API Keys
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <Button 
-              onClick={handleChangePassword}
-              disabled={!settings.currentPassword || !settings.newPassword || !settings.confirmPassword}
-              className="w-full"
-            >
-              Change Password
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={securitySettings.currentPassword}
+                  onChange={(e) => setSecuritySettings(prev => ({ ...prev, currentPassword: e.target.value }))}
+                  placeholder="Enter current password"
+                />
+              </div>
 
-      {/* Notifications */}
-      {activeSection === 'notifications' && (
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notification Preferences
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={securitySettings.newPassword}
+                  onChange={(e) => setSecuritySettings(prev => ({ ...prev, newPassword: e.target.value }))}
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={securitySettings.confirmPassword}
+                  onChange={(e) => setSecuritySettings(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="twoFactor"
+                  checked={securitySettings.twoFactorEnabled}
+                  onCheckedChange={(checked) => setSecuritySettings(prev => ({ ...prev, twoFactorEnabled: checked }))}
+                />
+                <Label htmlFor="twoFactor">Enable Two-Factor Authentication</Label>
+              </div>
+
+              <Button onClick={handlePasswordChange} className="w-full">
+                <Shield className="w-4 h-4 mr-2" />
+                Change Password
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="emailNotifications"
+                  checked={notificationSettings.emailNotifications}
+                  onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, emailNotifications: checked }))}
+                />
+                <Label htmlFor="emailNotifications">Email Notifications</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="smsNotifications"
+                  checked={notificationSettings.smsNotifications}
+                  onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, smsNotifications: checked }))}
+                />
+                <Label htmlFor="smsNotifications">SMS Notifications</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="pushNotifications"
+                  checked={notificationSettings.pushNotifications}
+                  onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, pushNotifications: checked }))}
+                />
+                <Label htmlFor="pushNotifications">Push Notifications</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="bookingReminders"
+                  checked={notificationSettings.bookingReminders}
+                  onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, bookingReminders: checked }))}
+                />
+                <Label htmlFor="bookingReminders">Booking Reminders</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="paymentAlerts"
+                  checked={notificationSettings.paymentAlerts}
+                  onCheckedChange={(checked) => setNotificationSettings(prev => ({ ...prev, paymentAlerts: checked }))}
+                />
+                <Label htmlFor="paymentAlerts">Payment Alerts</Label>
+              </div>
+
+              <Button onClick={handleNotificationSave} className="w-full">
+                <Save className="w-4 h-4 mr-2" />
+                Save Notification Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="theme">Theme</Label>
+                <Select onValueChange={(value) => setAppearanceSettings(prev => ({ ...prev, theme: value }))} value={appearanceSettings.theme}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="auto">Auto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="language">Language</Label>
+                <Select onValueChange={(value) => setAppearanceSettings(prev => ({ ...prev, language: value }))} value={appearanceSettings.language}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="fr">French</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-gray-500">Receive notifications via email</p>
+                  <Label htmlFor="dateFormat">Date Format</Label>
+                  <Select onValueChange={(value) => setAppearanceSettings(prev => ({ ...prev, dateFormat: value }))} value={appearanceSettings.dateFormat}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button
-                  variant={settings.emailNotifications ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleInputChange('emailNotifications', !settings.emailNotifications)}
-                >
-                  {settings.emailNotifications ? 'On' : 'Off'}
-                </Button>
-              </div>
 
-              <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Push Notifications</p>
-                  <p className="text-sm text-gray-500">Receive push notifications</p>
+                  <Label htmlFor="timeFormat">Time Format</Label>
+                  <Select onValueChange={(value) => setAppearanceSettings(prev => ({ ...prev, timeFormat: value }))} value={appearanceSettings.timeFormat}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12h">12 Hour</SelectItem>
+                      <SelectItem value="24h">24 Hour</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button
-                  variant={settings.pushNotifications ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleInputChange('pushNotifications', !settings.pushNotifications)}
-                >
-                  {settings.pushNotifications ? 'On' : 'Off'}
-                </Button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Booking Reminders</p>
-                  <p className="text-sm text-gray-500">Get reminded about upcoming bookings</p>
-                </div>
-                <Button
-                  variant={settings.bookingReminders ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleInputChange('bookingReminders', !settings.bookingReminders)}
-                >
-                  {settings.bookingReminders ? 'On' : 'Off'}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Payment Alerts</p>
-                  <p className="text-sm text-gray-500">Notifications for payment updates</p>
-                </div>
-                <Button
-                  variant={settings.paymentAlerts ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleInputChange('paymentAlerts', !settings.paymentAlerts)}
-                >
-                  {settings.paymentAlerts ? 'On' : 'Off'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Appearance */}
-      {activeSection === 'appearance' && (
-        <Card className="bg-white shadow-sm border-0">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="w-5 h-5" />
-              Appearance Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="theme">Theme</Label>
-              <Select value={settings.theme} onValueChange={(value) => handleInputChange('theme', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="auto">Auto</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="dateFormat">Date Format</Label>
-              <Select value={settings.dateFormat} onValueChange={(value) => handleInputChange('dateFormat', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Sync Status */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-blue-900">Sync Status</p>
-              <p className="text-sm text-blue-700">Last synced: Just now</p>
-            </div>
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-          </div>
-        </CardContent>
-      </Card>
+              <Button onClick={handleAppearanceSave} className="w-full">
+                <Save className="w-4 h-4 mr-2" />
+                Save Appearance Settings
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
