@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 interface EditBookingDialogProps {
@@ -24,7 +24,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     startTime: '',
     endTime: '',
     location: '',
-    assignedTo: '',
+    assignedTo: [] as string[],
     amount: '',
     expenses: '',
     paymentStatus: 'unpaid',
@@ -35,6 +35,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
   useEffect(() => {
     if (booking && open) {
       console.log('Loading booking data for edit:', booking);
+      const assignedMembers = booking.assignedTo ? booking.assignedTo.split(', ') : [];
       setBookingData({
         name: booking.name || '',
         client: booking.client || '',
@@ -43,9 +44,9 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
         startTime: booking.time ? booking.time.split(' - ')[0] : '',
         endTime: booking.time ? booking.time.split(' - ')[1] : '',
         location: booking.location || '',
-        assignedTo: booking.assignedTo || '',
-        amount: booking.amount ? booking.amount.replace('$', '') : '',
-        expenses: booking.expenses ? booking.expenses.replace('$', '') : '',
+        assignedTo: assignedMembers,
+        amount: booking.amount ? booking.amount.replace('AED ', '') : '',
+        expenses: booking.expenses ? booking.expenses.replace('AED ', '') : '',
         paymentStatus: booking.paymentStatus || 'unpaid',
         notes: booking.notes || ''
       });
@@ -67,9 +68,16 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     'Sarah Davis'
   ];
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     console.log('Updating field:', field, 'with value:', value);
     setBookingData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleTeamMemberToggle = (member: string, checked: boolean) => {
+    const updatedAssignments = checked 
+      ? [...bookingData.assignedTo, member]
+      : bookingData.assignedTo.filter(m => m !== member);
+    handleInputChange('assignedTo', updatedAssignments);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -79,9 +87,10 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     const updatedBooking = {
       ...booking,
       ...bookingData,
-      amount: bookingData.amount ? `$${bookingData.amount}` : '$0',
-      expenses: bookingData.expenses ? `$${bookingData.expenses}` : '$0',
-      time: `${bookingData.startTime} - ${bookingData.endTime}`
+      amount: bookingData.amount ? `AED ${bookingData.amount}` : 'AED 0',
+      expenses: bookingData.expenses ? `AED ${bookingData.expenses}` : 'AED 0',
+      time: `${bookingData.startTime} - ${bookingData.endTime}`,
+      assignedTo: bookingData.assignedTo.join(', ')
     };
 
     console.log('Updated booking:', updatedBooking);
@@ -188,22 +197,24 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
           </div>
 
           <div>
-            <Label htmlFor="assignedTo">Assigned Team Member</Label>
-            <Select onValueChange={(value) => handleInputChange('assignedTo', value)} value={bookingData.assignedTo}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select team member" />
-              </SelectTrigger>
-              <SelectContent>
-                {teamMembers.map((member) => (
-                  <SelectItem key={member} value={member}>{member}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Assigned Team Members</Label>
+            <div className="space-y-2 mt-2 max-h-32 overflow-y-auto border rounded-md p-2">
+              {teamMembers.map((member) => (
+                <div key={member} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={member}
+                    checked={bookingData.assignedTo.includes(member)}
+                    onCheckedChange={(checked) => handleTeamMemberToggle(member, checked as boolean)}
+                  />
+                  <Label htmlFor={member} className="text-sm">{member}</Label>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="amount">Amount ($)</Label>
+              <Label htmlFor="amount">Amount (AED)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -214,7 +225,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
               />
             </div>
             <div>
-              <Label htmlFor="expenses">Expenses ($)</Label>
+              <Label htmlFor="expenses">Expenses (AED)</Label>
               <Input
                 id="expenses"
                 type="number"

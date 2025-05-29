@@ -21,9 +21,9 @@ const Bookings = () => {
       date: '2025-05-30',
       time: '14:00 - 18:00',
       location: 'Central Park, NYC',
-      assignedTo: 'Alex Thompson',
+      assignedTo: 'Alex Thompson, Emma Wilson',
       status: 'confirmed',
-      amount: '$2,500',
+      amount: 'AED 9,200',
       paymentStatus: 'partial',
       notes: 'Outdoor ceremony, backup indoor location ready'
     },
@@ -37,7 +37,7 @@ const Bookings = () => {
       location: 'Studio Downtown',
       assignedTo: 'Emma Wilson',
       status: 'pending',
-      amount: '$650',
+      amount: 'AED 2,390',
       paymentStatus: 'unpaid',
       notes: 'Professional headshots for LinkedIn'
     },
@@ -51,7 +51,7 @@ const Bookings = () => {
       location: 'Riverside Park',
       assignedTo: 'Alex Thompson',
       status: 'confirmed',
-      amount: '$800',
+      amount: 'AED 2,945',
       paymentStatus: 'paid',
       notes: 'Golden hour session with 3 kids'
     }

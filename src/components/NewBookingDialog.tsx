@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
 interface NewBookingDialogProps {
@@ -23,7 +24,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     startTime: '',
     endTime: '',
     location: '',
-    assignedTo: '',
+    assignedTo: [] as string[],
     amount: '',
     expenses: '',
     paymentStatus: 'unpaid',
@@ -47,11 +48,18 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     'Sarah Davis'
   ];
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setBookingData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handleTeamMemberToggle = (member: string, checked: boolean) => {
+    const updatedAssignments = checked 
+      ? [...bookingData.assignedTo, member]
+      : bookingData.assignedTo.filter(m => m !== member);
+    handleInputChange('assignedTo', updatedAssignments);
   };
 
   const validateForm = () => {
@@ -75,8 +83,8 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     if (bookingData.startTime && bookingData.endTime && bookingData.startTime >= bookingData.endTime) {
       newErrors.endTime = 'End time must be after start time';
     }
-    if (!bookingData.assignedTo) {
-      newErrors.assignedTo = 'Team member must be assigned';
+    if (bookingData.assignedTo.length === 0) {
+      newErrors.assignedTo = 'At least one team member must be assigned';
     }
     if (bookingData.amount && isNaN(Number(bookingData.amount))) {
       newErrors.amount = 'Amount must be a valid number';
@@ -105,9 +113,10 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
       id: Date.now(),
       ...bookingData,
       status: 'pending',
-      amount: bookingData.amount ? `$${bookingData.amount}` : '$0',
-      expenses: bookingData.expenses ? `$${bookingData.expenses}` : '$0',
-      time: `${bookingData.startTime} - ${bookingData.endTime}`
+      amount: bookingData.amount ? `AED ${bookingData.amount}` : 'AED 0',
+      expenses: bookingData.expenses ? `AED ${bookingData.expenses}` : 'AED 0',
+      time: `${bookingData.startTime} - ${bookingData.endTime}`,
+      assignedTo: bookingData.assignedTo.join(', ')
     };
 
     console.log('Creating new booking:', newBooking);
@@ -129,7 +138,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
       startTime: '',
       endTime: '',
       location: '',
-      assignedTo: '',
+      assignedTo: [],
       amount: '',
       expenses: '',
       paymentStatus: 'unpaid',
@@ -240,23 +249,25 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
           </div>
 
           <div>
-            <Label htmlFor="assignedTo">Assigned Photographer/Assistant *</Label>
-            <Select onValueChange={(value) => handleInputChange('assignedTo', value)}>
-              <SelectTrigger className={errors.assignedTo ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Select team member" />
-              </SelectTrigger>
-              <SelectContent>
-                {teamMembers.map((member) => (
-                  <SelectItem key={member} value={member}>{member}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Assigned Team Members *</Label>
+            <div className="space-y-2 mt-2 max-h-32 overflow-y-auto border rounded-md p-2">
+              {teamMembers.map((member) => (
+                <div key={member} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={member}
+                    checked={bookingData.assignedTo.includes(member)}
+                    onCheckedChange={(checked) => handleTeamMemberToggle(member, checked as boolean)}
+                  />
+                  <Label htmlFor={member} className="text-sm">{member}</Label>
+                </div>
+              ))}
+            </div>
             {errors.assignedTo && <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="amount">Amount ($)</Label>
+              <Label htmlFor="amount">Amount (AED)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -269,7 +280,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
               {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
             </div>
             <div>
-              <Label htmlFor="expenses">Expenses ($)</Label>
+              <Label htmlFor="expenses">Expenses (AED)</Label>
               <Input
                 id="expenses"
                 type="number"

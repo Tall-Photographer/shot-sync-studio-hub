@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,8 @@ const Settings = () => {
     businessEmail: '',
     businessPhone: '',
     businessAddress: '',
-    timezone: 'America/New_York',
-    currency: 'USD'
+    timezone: 'Asia/Dubai',
+    currency: 'AED'
   });
 
   const [apiSettings, setApiSettings] = useState({
@@ -248,7 +247,7 @@ const Settings = () => {
                   type="tel"
                   value={generalSettings.businessPhone}
                   onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessPhone: e.target.value }))}
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+971 50 123 4567"
                 />
               </div>
 
@@ -258,7 +257,7 @@ const Settings = () => {
                   id="businessAddress"
                   value={generalSettings.businessAddress}
                   onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessAddress: e.target.value }))}
-                  placeholder="123 Main St, City, State 12345"
+                  placeholder="Dubai, UAE"
                 />
               </div>
 
@@ -270,10 +269,10 @@ const Settings = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Asia/Dubai">UAE Time (GMT+4)</SelectItem>
                       <SelectItem value="America/New_York">Eastern Time</SelectItem>
                       <SelectItem value="America/Chicago">Central Time</SelectItem>
-                      <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                      <SelectItem value="Europe/London">GMT</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -285,6 +284,7 @@ const Settings = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="AED">AED (د.إ)</SelectItem>
                       <SelectItem value="USD">USD ($)</SelectItem>
                       <SelectItem value="EUR">EUR (€)</SelectItem>
                       <SelectItem value="GBP">GBP (£)</SelectItem>
@@ -502,6 +502,7 @@ const Settings = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="ar">Arabic</SelectItem>
                     <SelectItem value="es">Spanish</SelectItem>
                     <SelectItem value="fr">French</SelectItem>
                   </SelectContent>
