@@ -1,12 +1,16 @@
 
-import React from 'react';
-import { Plus, Camera, Calendar, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Calendar, DollarSign, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import EditTeamMemberDialog from './EditTeamMemberDialog';
+import AddTeamMemberDialog from './AddTeamMemberDialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Team = () => {
-  const teamMembers = [
+  const { toast } = useToast();
+  const [teamMembers, setTeamMembers] = useState([
     {
       id: 1,
       name: 'Alex Thompson',
@@ -43,7 +47,25 @@ const Team = () => {
       specialties: ['Events', 'Corporate'],
       joinDate: '2023-08-10'
     }
-  ];
+  ]);
+
+  const handleMemberAdded = (newMember: any) => {
+    setTeamMembers(prev => [...prev, newMember]);
+  };
+
+  const handleMemberUpdated = (updatedMember: any) => {
+    setTeamMembers(prev => prev.map(member => 
+      member.id === updatedMember.id ? updatedMember : member
+    ));
+  };
+
+  const handleViewSchedule = (member: any) => {
+    console.log('Viewing schedule for:', member.name);
+    toast({
+      title: "Schedule View",
+      description: `Opening ${member.name}'s schedule`
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,10 +81,15 @@ const Team = () => {
       {/* Header */}
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-gray-900">Team</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Member
-        </Button>
+        <AddTeamMemberDialog
+          trigger={
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Member
+            </Button>
+          }
+          onMemberAdded={handleMemberAdded}
+        />
       </div>
 
       {/* Team Stats */}
@@ -147,12 +174,24 @@ const Team = () => {
                   Joined: {new Date(member.joinDate).toLocaleDateString()}
                 </p>
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => handleViewSchedule(member)}
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
                     View Schedule
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    Edit Profile
-                  </Button>
+                  <EditTeamMemberDialog
+                    member={member}
+                    onMemberUpdated={handleMemberUpdated}
+                    trigger={
+                      <Button size="sm" variant="outline" className="flex-1">
+                        Edit Profile
+                      </Button>
+                    }
+                  />
                 </div>
               </div>
             </CardContent>

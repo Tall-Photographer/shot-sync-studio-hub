@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,15 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 interface NewBookingDialogProps {
   trigger: React.ReactNode;
   onBookingAdded?: (booking: any) => void;
+  defaultDate?: string;
 }
 
-const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) => {
+const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDialogProps) => {
   const [open, setOpen] = useState(false);
   const [bookingData, setBookingData] = useState({
     name: '',
     client: '',
     service: '',
-    date: '',
+    date: defaultDate || '',
     startTime: '',
     endTime: '',
     location: '',
@@ -49,7 +49,6 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
 
   const handleInputChange = (field: string, value: string) => {
     setBookingData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -126,7 +125,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
       name: '',
       client: '',
       service: '',
-      date: '',
+      date: defaultDate || '',
       startTime: '',
       endTime: '',
       location: '',

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import QuotationDialog from './QuotationDialog';
 import NewBookingDialog from './NewBookingDialog';
+import EditBookingDialog from './EditBookingDialog';
 import { useToast } from '@/hooks/use-toast';
 
 const Bookings = () => {
@@ -60,12 +61,10 @@ const Bookings = () => {
     setBookings(prev => [...prev, newBooking]);
   };
 
-  const handleEditBooking = (bookingId: number) => {
-    console.log('Editing booking:', bookingId);
-    toast({
-      title: "Edit Booking",
-      description: "Opening edit dialog for booking"
-    });
+  const handleBookingUpdated = (updatedBooking: any) => {
+    setBookings(prev => prev.map(booking => 
+      booking.id === updatedBooking.id ? updatedBooking : booking
+    ));
   };
 
   const handleCreateInvoice = (booking: any) => {
@@ -93,6 +92,12 @@ const Bookings = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Filter bookings based on active tab
+  const filteredBookings = bookings.filter(booking => {
+    if (activeTab === 'all') return true;
+    return booking.status === activeTab;
+  });
 
   const tabs = [
     { id: 'all', label: 'All Bookings', count: bookings.length },
@@ -161,7 +166,7 @@ const Bookings = () => {
 
       {/* Bookings List */}
       <div className="space-y-4">
-        {bookings.map((booking) => (
+        {filteredBookings.map((booking) => (
           <Card key={booking.id} className="bg-white shadow-sm border-0">
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
@@ -203,15 +208,16 @@ const Bookings = () => {
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleEditBooking(booking.id)}
-                  className="flex items-center gap-1"
-                >
-                  <Edit className="w-3 h-3" />
-                  Edit
-                </Button>
+                <EditBookingDialog
+                  booking={booking}
+                  onBookingUpdated={handleBookingUpdated}
+                  trigger={
+                    <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      <Edit className="w-3 h-3" />
+                      Edit
+                    </Button>
+                  }
+                />
                 
                 <QuotationDialog
                   booking={booking}

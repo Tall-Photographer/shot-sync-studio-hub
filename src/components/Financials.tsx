@@ -1,11 +1,17 @@
 
 import React, { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, DollarSign, Receipt } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, DollarSign, Receipt, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const Financials = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedMonth, setSelectedMonth] = useState('2025-05');
+  const [selectedTeamMember, setSelectedTeamMember] = useState('all');
+  const [selectedClient, setSelectedClient] = useState('all');
+  const { toast } = useToast();
 
   const financialData = {
     monthlyRevenue: 12450,
@@ -16,14 +22,16 @@ const Financials = () => {
     unpaidInvoices: 3
   };
 
-  const recentTransactions = [
+  const allTransactions = [
     {
       id: 1,
       type: 'income',
       description: 'Wedding Photography - Sarah Johnson',
       amount: 2500,
       date: '2025-05-25',
-      status: 'completed'
+      status: 'completed',
+      teamMember: 'Alex Thompson',
+      client: 'Sarah Johnson'
     },
     {
       id: 2,
@@ -31,7 +39,9 @@ const Financials = () => {
       description: 'Camera Equipment Rental',
       amount: -450,
       date: '2025-05-24',
-      status: 'completed'
+      status: 'completed',
+      teamMember: 'Alex Thompson',
+      client: null
     },
     {
       id: 3,
@@ -39,7 +49,9 @@ const Financials = () => {
       description: 'Corporate Headshots - TechCorp',
       amount: 1200,
       date: '2025-05-23',
-      status: 'pending'
+      status: 'pending',
+      teamMember: 'Emma Wilson',
+      client: 'Mike Davis'
     },
     {
       id: 4,
@@ -47,9 +59,49 @@ const Financials = () => {
       description: 'Studio Rent',
       amount: -800,
       date: '2025-05-20',
-      status: 'completed'
+      status: 'completed',
+      teamMember: null,
+      client: null
+    },
+    {
+      id: 5,
+      type: 'income',
+      description: 'Family Photography Session',
+      amount: 800,
+      date: '2025-05-22',
+      status: 'completed',
+      teamMember: 'James Rodriguez',
+      client: 'Emma Wilson'
     }
   ];
+
+  const teamMembers = ['Alex Thompson', 'Emma Wilson', 'James Rodriguez'];
+  const clients = ['Sarah Johnson', 'Mike Davis', 'Emma Wilson'];
+
+  const handleAddTransaction = () => {
+    console.log('Adding new transaction');
+    toast({
+      title: "Add Transaction",
+      description: "Opening transaction form"
+    });
+  };
+
+  const handleExportData = () => {
+    console.log('Exporting financial data');
+    toast({
+      title: "Export Started",
+      description: "Financial data export in progress"
+    });
+  };
+
+  // Filter transactions based on selected filters and active tab
+  const filteredTransactions = allTransactions.filter(transaction => {
+    if (activeTab === 'income' && transaction.type !== 'income') return false;
+    if (activeTab === 'expenses' && transaction.type !== 'expense') return false;
+    if (selectedTeamMember !== 'all' && transaction.teamMember !== selectedTeamMember) return false;
+    if (selectedClient !== 'all' && transaction.client !== selectedClient) return false;
+    return true;
+  });
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
@@ -62,10 +114,60 @@ const Financials = () => {
       {/* Header */}
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-gray-900">Financials</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Transaction
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={handleExportData}>
+            Export
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddTransaction}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Transaction
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Month</label>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2025-05">May 2025</SelectItem>
+              <SelectItem value="2025-04">April 2025</SelectItem>
+              <SelectItem value="2025-03">March 2025</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Team Member</label>
+          <Select value={selectedTeamMember} onValueChange={setSelectedTeamMember}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Members</SelectItem>
+              {teamMembers.map(member => (
+                <SelectItem key={member} value={member}>{member}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Client</label>
+          <Select value={selectedClient} onValueChange={setSelectedClient}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              {clients.map(client => (
+                <SelectItem key={client} value={client}>{client}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -148,13 +250,19 @@ const Financials = () => {
         </Card>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Transactions */}
       <Card className="bg-white shadow-sm border-0">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Recent Transactions</CardTitle>
+          <CardTitle className="text-lg font-semibold flex items-center justify-between">
+            {activeTab === 'overview' ? 'Recent Transactions' : 
+             activeTab === 'income' ? 'Income Transactions' : 'Expense Transactions'}
+            <span className="text-sm font-normal text-gray-500">
+              ({filteredTransactions.length} transactions)
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {recentTransactions.map((transaction) => (
+          {filteredTransactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -170,7 +278,11 @@ const Financials = () => {
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">{transaction.description}</p>
-                  <p className="text-sm text-gray-600">{transaction.date}</p>
+                  <div className="text-sm text-gray-600">
+                    <p>{transaction.date}</p>
+                    {transaction.teamMember && <p>👤 {transaction.teamMember}</p>}
+                    {transaction.client && <p>🏢 {transaction.client}</p>}
+                  </div>
                 </div>
               </div>
               <div className="text-right">

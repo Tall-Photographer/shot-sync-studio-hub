@@ -1,22 +1,29 @@
-
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import NewBookingDialog from './NewBookingDialog';
+import EditBookingDialog from './EditBookingDialog';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
-  const bookings = [
+  const [bookings, setBookings] = useState([
     {
       id: 1,
       name: 'Sarah & John Wedding',
       date: '2025-05-30',
       time: '14:00 - 18:00',
       assignedTo: 'Alex Thompson',
-      status: 'confirmed'
+      status: 'confirmed',
+      client: 'Sarah Johnson',
+      location: 'Central Park, NYC',
+      amount: '$2,500',
+      paymentStatus: 'partial',
+      notes: 'Outdoor ceremony, backup indoor location ready'
     },
     {
       id: 2,
@@ -24,7 +31,12 @@ const Calendar = () => {
       date: '2025-06-02',
       time: '10:00 - 12:00',
       assignedTo: 'Emma Wilson',
-      status: 'pending'
+      status: 'pending',
+      client: 'Mike Davis',
+      location: 'Studio Downtown',
+      amount: '$650',
+      paymentStatus: 'unpaid',
+      notes: 'Professional headshots for LinkedIn'
     },
     {
       id: 3,
@@ -32,9 +44,28 @@ const Calendar = () => {
       date: '2025-06-05',
       time: '09:00 - 11:00',
       assignedTo: 'Alex Thompson',
-      status: 'confirmed'
+      status: 'confirmed',
+      client: 'Emma Wilson',
+      location: 'Riverside Park',
+      amount: '$800',
+      paymentStatus: 'paid',
+      notes: 'Golden hour session with 3 kids'
     }
-  ];
+  ]);
+
+  const handleBookingAdded = (newBooking: any) => {
+    setBookings(prev => [...prev, newBooking]);
+  };
+
+  const handleBookingUpdated = (updatedBooking: any) => {
+    setBookings(prev => prev.map(booking => 
+      booking.id === updatedBooking.id ? updatedBooking : booking
+    ));
+  };
+
+  const handleDayClick = (date: string) => {
+    setSelectedDate(date);
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -85,22 +116,41 @@ const Calendar = () => {
     return (
       <Card className="bg-white shadow-sm border-0">
         <CardContent className="p-4">
-          <h3 className="font-semibold text-lg mb-4">{formatDate(currentDate)}</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-lg">{formatDate(currentDate)}</h3>
+            <NewBookingDialog
+              trigger={
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add Booking
+                </Button>
+              }
+              onBookingAdded={handleBookingAdded}
+              defaultDate={dateStr}
+            />
+          </div>
           {dayBookings.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No bookings for this day</p>
           ) : (
             <div className="space-y-3">
               {dayBookings.map((booking) => (
-                <div key={booking.id} className="bg-blue-50 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{booking.name}</h4>
-                    <Badge className={getStatusColor(booking.status)}>
-                      {booking.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{booking.time}</p>
-                  <p className="text-sm text-blue-600">📸 {booking.assignedTo}</p>
-                </div>
+                <EditBookingDialog
+                  key={booking.id}
+                  booking={booking}
+                  onBookingUpdated={handleBookingUpdated}
+                  trigger={
+                    <div className="bg-blue-50 rounded-lg p-3 cursor-pointer hover:bg-blue-100 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium">{booking.name}</h4>
+                        <Badge className={getStatusColor(booking.status)}>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{booking.time}</p>
+                      <p className="text-sm text-blue-600">📸 {booking.assignedTo}</p>
+                    </div>
+                  }
+                />
               ))}
             </div>
           )}
@@ -124,15 +174,44 @@ const Calendar = () => {
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
           <div key={day} className="text-center">
             <p className="text-sm font-medium text-gray-600 mb-2">{day}</p>
-            <div className="bg-white rounded-lg border min-h-[120px] p-2">
-              <p className="text-sm font-medium mb-2">
-                {weekDays[index].getDate()}
-              </p>
+            <div 
+              className="bg-white rounded-lg border min-h-[120px] p-2 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => handleDayClick(weekDays[index].toISOString().split('T')[0])}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">
+                  {weekDays[index].getDate()}
+                </p>
+                <NewBookingDialog
+                  trigger={
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  }
+                  onBookingAdded={handleBookingAdded}
+                  defaultDate={weekDays[index].toISOString().split('T')[0]}
+                />
+              </div>
               {getBookingsForDate(weekDays[index].toISOString().split('T')[0]).map((booking) => (
-                <div key={booking.id} className="bg-blue-100 rounded text-xs p-1 mb-1">
-                  <p className="font-medium truncate">{booking.name}</p>
-                  <p className="text-gray-600">{booking.time.split(' - ')[0]}</p>
-                </div>
+                <EditBookingDialog
+                  key={booking.id}
+                  booking={booking}
+                  onBookingUpdated={handleBookingUpdated}
+                  trigger={
+                    <div 
+                      className="bg-blue-100 rounded text-xs p-1 mb-1 cursor-pointer hover:bg-blue-200 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <p className="font-medium truncate">{booking.name}</p>
+                      <p className="text-gray-600">{booking.time.split(' - ')[0]}</p>
+                    </div>
+                  }
+                />
               ))}
             </div>
           </div>
@@ -178,19 +257,46 @@ const Calendar = () => {
               return (
                 <div 
                   key={dayIndex} 
-                  className={`bg-white rounded border min-h-[80px] p-1 ${
+                  className={`bg-white rounded border min-h-[80px] p-1 cursor-pointer hover:bg-gray-50 transition-colors ${
                     isCurrentMonth ? '' : 'opacity-50'
                   }`}
+                  onClick={() => handleDayClick(day.toISOString().split('T')[0])}
                 >
-                  <p className={`text-sm font-medium mb-1 ${
-                    isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                  }`}>
-                    {day.getDate()}
-                  </p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className={`text-sm font-medium ${
+                      isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                    }`}>
+                      {day.getDate()}
+                    </p>
+                    <NewBookingDialog
+                      trigger={
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-4 w-4 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Plus className="w-2 h-2" />
+                        </Button>
+                      }
+                      onBookingAdded={handleBookingAdded}
+                      defaultDate={day.toISOString().split('T')[0]}
+                    />
+                  </div>
                   {dayBookings.slice(0, 2).map((booking) => (
-                    <div key={booking.id} className="bg-blue-100 rounded text-xs p-1 mb-1">
-                      <p className="font-medium truncate">{booking.name}</p>
-                    </div>
+                    <EditBookingDialog
+                      key={booking.id}
+                      booking={booking}
+                      onBookingUpdated={handleBookingUpdated}
+                      trigger={
+                        <div 
+                          className="bg-blue-100 rounded text-xs p-1 mb-1 cursor-pointer hover:bg-blue-200 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <p className="font-medium truncate">{booking.name}</p>
+                        </div>
+                      }
+                    />
                   ))}
                   {dayBookings.length > 2 && (
                     <p className="text-xs text-gray-500">+{dayBookings.length - 2} more</p>
@@ -261,6 +367,15 @@ const Calendar = () => {
       {viewMode === 'day' && renderDayView()}
       {viewMode === 'week' && renderWeekView()}
       {viewMode === 'month' && renderMonthView()}
+
+      {/* Selected Date New Booking Dialog */}
+      {selectedDate && (
+        <NewBookingDialog
+          trigger={<div />}
+          onBookingAdded={handleBookingAdded}
+          defaultDate={selectedDate}
+        />
+      )}
     </div>
   );
 };
