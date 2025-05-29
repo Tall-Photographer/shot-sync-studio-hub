@@ -20,25 +20,83 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
     client: '',
     service: '',
     date: '',
-    time: '',
+    startTime: '',
+    endTime: '',
     location: '',
     assignedTo: '',
     amount: '',
+    expenses: '',
+    paymentStatus: 'unpaid',
     notes: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const clients = [
+    'Sarah Johnson',
+    'Mike Davis', 
+    'Emma Wilson',
+    'John Smith',
+    'Lisa Brown'
+  ];
+
+  const teamMembers = [
+    'Alex Thompson',
+    'Emma Wilson', 
+    'Mike Johnson',
+    'Sarah Davis'
+  ];
 
   const handleInputChange = (field: string, value: string) => {
     setBookingData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!bookingData.name.trim()) {
+      newErrors.name = 'Booking name is required';
+    }
+    if (!bookingData.client) {
+      newErrors.client = 'Client must be selected';
+    }
+    if (!bookingData.date) {
+      newErrors.date = 'Date is required';
+    }
+    if (!bookingData.startTime) {
+      newErrors.startTime = 'Start time is required';
+    }
+    if (!bookingData.endTime) {
+      newErrors.endTime = 'End time is required';
+    }
+    if (bookingData.startTime && bookingData.endTime && bookingData.startTime >= bookingData.endTime) {
+      newErrors.endTime = 'End time must be after start time';
+    }
+    if (!bookingData.assignedTo) {
+      newErrors.assignedTo = 'Team member must be assigned';
+    }
+    if (bookingData.amount && isNaN(Number(bookingData.amount))) {
+      newErrors.amount = 'Amount must be a valid number';
+    }
+    if (bookingData.expenses && isNaN(Number(bookingData.expenses))) {
+      newErrors.expenses = 'Expenses must be a valid number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!bookingData.name || !bookingData.client || !bookingData.date) {
+    if (!validateForm()) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        title: "Validation Error",
+        description: "Please fix the errors before submitting",
         variant: "destructive"
       });
       return;
@@ -48,8 +106,9 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
       id: Date.now(),
       ...bookingData,
       status: 'pending',
-      paymentStatus: 'unpaid',
-      amount: bookingData.amount ? `$${bookingData.amount}` : '$0'
+      amount: bookingData.amount ? `$${bookingData.amount}` : '$0',
+      expenses: bookingData.expenses ? `$${bookingData.expenses}` : '$0',
+      time: `${bookingData.startTime} - ${bookingData.endTime}`
     };
 
     console.log('Creating new booking:', newBooking);
@@ -68,12 +127,16 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
       client: '',
       service: '',
       date: '',
-      time: '',
+      startTime: '',
+      endTime: '',
       location: '',
       assignedTo: '',
       amount: '',
+      expenses: '',
+      paymentStatus: 'unpaid',
       notes: ''
     });
+    setErrors({});
   };
 
   return (
@@ -94,19 +157,24 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
               value={bookingData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="e.g., Sarah & John Wedding"
-              required
+              className={errors.name ? 'border-red-500' : ''}
             />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
           <div>
-            <Label htmlFor="client">Client Name *</Label>
-            <Input
-              id="client"
-              value={bookingData.client}
-              onChange={(e) => handleInputChange('client', e.target.value)}
-              placeholder="Enter client name"
-              required
-            />
+            <Label htmlFor="client">Linked Client *</Label>
+            <Select onValueChange={(value) => handleInputChange('client', value)}>
+              <SelectTrigger className={errors.client ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client} value={client}>{client}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.client && <p className="text-red-500 text-xs mt-1">{errors.client}</p>}
           </div>
 
           <div>
@@ -125,25 +193,40 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
             </Select>
           </div>
 
+          <div>
+            <Label htmlFor="date">Date *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={bookingData.date}
+              onChange={(e) => handleInputChange('date', e.target.value)}
+              className={errors.date ? 'border-red-500' : ''}
+            />
+            {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="date">Date *</Label>
+              <Label htmlFor="startTime">Start Time *</Label>
               <Input
-                id="date"
-                type="date"
-                value={bookingData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
-                required
+                id="startTime"
+                type="time"
+                value={bookingData.startTime}
+                onChange={(e) => handleInputChange('startTime', e.target.value)}
+                className={errors.startTime ? 'border-red-500' : ''}
               />
+              {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
             </div>
             <div>
-              <Label htmlFor="time">Time</Label>
+              <Label htmlFor="endTime">End Time *</Label>
               <Input
-                id="time"
-                value={bookingData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
-                placeholder="e.g., 14:00 - 18:00"
+                id="endTime"
+                type="time"
+                value={bookingData.endTime}
+                onChange={(e) => handleInputChange('endTime', e.target.value)}
+                className={errors.endTime ? 'border-red-500' : ''}
               />
+              {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
             </div>
           </div>
 
@@ -158,29 +241,61 @@ const NewBookingDialog = ({ trigger, onBookingAdded }: NewBookingDialogProps) =>
           </div>
 
           <div>
-            <Label htmlFor="assignedTo">Assigned To</Label>
+            <Label htmlFor="assignedTo">Assigned Photographer/Assistant *</Label>
             <Select onValueChange={(value) => handleInputChange('assignedTo', value)}>
-              <SelectTrigger>
+              <SelectTrigger className={errors.assignedTo ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Select team member" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Alex Thompson">Alex Thompson</SelectItem>
-                <SelectItem value="Emma Wilson">Emma Wilson</SelectItem>
-                <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
-                <SelectItem value="Sarah Davis">Sarah Davis</SelectItem>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member} value={member}>{member}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            {errors.assignedTo && <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="amount">Amount ($)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={bookingData.amount}
+                onChange={(e) => handleInputChange('amount', e.target.value)}
+                placeholder="0.00"
+                className={errors.amount ? 'border-red-500' : ''}
+              />
+              {errors.amount && <p className="text-red-500 text-xs mt-1">{errors.amount}</p>}
+            </div>
+            <div>
+              <Label htmlFor="expenses">Expenses ($)</Label>
+              <Input
+                id="expenses"
+                type="number"
+                step="0.01"
+                value={bookingData.expenses}
+                onChange={(e) => handleInputChange('expenses', e.target.value)}
+                placeholder="0.00"
+                className={errors.expenses ? 'border-red-500' : ''}
+              />
+              {errors.expenses && <p className="text-red-500 text-xs mt-1">{errors.expenses}</p>}
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="amount">Amount ($)</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={bookingData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
-              placeholder="Enter amount"
-            />
+            <Label htmlFor="paymentStatus">Payment Status</Label>
+            <Select onValueChange={(value) => handleInputChange('paymentStatus', value)} defaultValue="unpaid">
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
+                <SelectItem value="partial">Partial</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

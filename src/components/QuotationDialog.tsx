@@ -41,25 +41,82 @@ const QuotationDialog = ({ booking, trigger }: QuotationDialogProps) => {
       return;
     }
 
-    // Simulate Nomod API integration
+    const nomodApiKey = localStorage.getItem('nomod_api_key');
+    if (!nomodApiKey) {
+      toast({
+        title: "API Key Missing",
+        description: "Please configure your Nomod API key in Settings first",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const depositAmount = (amount * 0.5).toFixed(2);
     const remainingAmount = (amount * 0.5).toFixed(2);
 
-    console.log('Generating payment links:', {
+    console.log('Generating payment links with Nomod API:', {
+      apiKey: nomodApiKey,
       depositLink: `https://nomod.api/pay/deposit/${depositAmount}`,
       remainingLink: `https://nomod.api/pay/remaining/${remainingAmount}`,
       fullPaymentLink: `https://nomod.api/pay/full/${amount}`
     });
 
-    toast({
-      title: "Payment Links Generated",
-      description: "Deposit, remaining, and full payment links created successfully"
-    });
+    // Simulate Nomod API call
+    try {
+      // This would be the actual API call to Nomod
+      /*
+      const response = await fetch('https://api.nomod.com/payment-links', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${nomodApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: amount,
+          currency: 'USD',
+          description: quotationData.title,
+          customer_email: 'customer@email.com' // would get from client data
+        })
+      });
+      */
+
+      toast({
+        title: "Payment Links Generated",
+        description: `Deposit: $${depositAmount} | Remaining: $${remainingAmount} | Full: $${amount}`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate payment links",
+        variant: "destructive"
+      });
+    }
   };
 
   const sendQuotation = async (method: 'whatsapp' | 'email') => {
     console.log(`Sending quotation via ${method}:`, quotationData);
     
+    const businessEmail = localStorage.getItem('business_email');
+    const businessPhone = localStorage.getItem('business_phone');
+    
+    if (method === 'email' && !businessEmail) {
+      toast({
+        title: "Email Not Configured",
+        description: "Please configure your business email in Settings",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (method === 'whatsapp' && !businessPhone) {
+      toast({
+        title: "Phone Not Configured", 
+        description: "Please configure your business phone in Settings",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Simulate sending quotation
     toast({
       title: "Quotation Sent",
@@ -170,7 +227,7 @@ const QuotationDialog = ({ booking, trigger }: QuotationDialogProps) => {
               className="w-full bg-green-600 hover:bg-green-700"
             >
               <DollarSign className="w-4 h-4 mr-2" />
-              Generate Payment Links
+              Generate Payment Links (Nomod)
             </Button>
 
             <div className="grid grid-cols-2 gap-2">
