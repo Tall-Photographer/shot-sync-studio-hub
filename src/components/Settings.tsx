@@ -190,26 +190,31 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <User className="w-4 h-4" />
-            General
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+          <TabsTrigger value="general" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+            <User className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">General</span>
+            <span className="sm:hidden">Gen</span>
           </TabsTrigger>
-          <TabsTrigger value="api" className="flex items-center gap-2">
-            <Key className="w-4 h-4" />
-            API Keys
+          <TabsTrigger value="api" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+            <Key className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">API Keys</span>
+            <span className="sm:hidden">API</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="w-4 h-4" />
-            Security
+          <TabsTrigger value="security" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+            <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Security</span>
+            <span className="sm:hidden">Sec</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="w-4 h-4" />
-            Notifications
+          <TabsTrigger value="notifications" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+            <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Notifications</span>
+            <span className="sm:hidden">Not</span>
           </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="w-4 h-4" />
-            Appearance
+          <TabsTrigger value="appearance" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3">
+            <Palette className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Appearance</span>
+            <span className="sm:hidden">App</span>
           </TabsTrigger>
         </TabsList>
 
