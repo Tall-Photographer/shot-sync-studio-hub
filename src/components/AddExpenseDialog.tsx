@@ -208,7 +208,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
                 <SelectValue placeholder="Link to booking" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {availableBookings.map((booking) => (
                   <SelectItem key={booking} value={booking}>{booking}</SelectItem>
                 ))}
