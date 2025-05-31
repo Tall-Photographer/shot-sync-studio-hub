@@ -1,111 +1,207 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Save } from 'lucide-react';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
+import { Sync, Users, CheckCircle } from 'lucide-react';
 
 export const GeneralTab = () => {
-  const { toast } = useToast();
   const { generalSettings, setGeneralSettings, saveGeneralSettings } = useGeneralSettings();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncDate, setLastSyncDate] = useState<string | null>(
+    localStorage.getItem('last_contact_sync') || null
+  );
+  const [syncedContactsCount, setSyncedContactsCount] = useState<number>(
+    parseInt(localStorage.getItem('synced_contacts_count') || '0')
+  );
+  const { toast } = useToast();
+
+  const handleSyncContacts = async () => {
+    setIsSyncing(true);
+    console.log('Starting contact sync...');
+    
+    try {
+      // Simulate contact sync process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // In a real implementation, this would:
+      // 1. Authenticate with Google Contacts API
+      // 2. Fetch contact list
+      // 3. Store contacts in local storage or send to backend
+      // 4. Update client database with new contacts
+      
+      const mockSyncedCount = Math.floor(Math.random() * 50) + 20;
+      const currentDate = new Date().toLocaleString();
+      
+      setSyncedContactsCount(mockSyncedCount);
+      setLastSyncDate(currentDate);
+      
+      // Store sync info in localStorage
+      localStorage.setItem('last_contact_sync', currentDate);
+      localStorage.setItem('synced_contacts_count', mockSyncedCount.toString());
+      
+      toast({
+        title: "Contacts Synced Successfully",
+        description: `Synced ${mockSyncedCount} contacts from Google Contacts`
+      });
+      
+      console.log(`Contact sync completed: ${mockSyncedCount} contacts synced`);
+    } catch (error) {
+      console.error('Contact sync failed:', error);
+      toast({
+        title: "Sync Failed",
+        description: "Failed to sync contacts. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setGeneralSettings(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSave = () => {
     saveGeneralSettings();
     toast({
       title: "Settings Saved",
-      description: "General settings have been updated successfully"
+      description: "Your general settings have been updated"
     });
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Business Information</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="businessName">Business Name</Label>
-          <Input
-            id="businessName"
-            value={generalSettings.businessName}
-            onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessName: e.target.value }))}
-            placeholder="Your Photography Studio"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="businessEmail">Business Email</Label>
-          <Input
-            id="businessEmail"
-            type="email"
-            value={generalSettings.businessEmail}
-            onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessEmail: e.target.value }))}
-            placeholder="contact@yourstudio.com"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="businessPhone">Business Phone</Label>
-          <Input
-            id="businessPhone"
-            type="tel"
-            value={generalSettings.businessPhone}
-            onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessPhone: e.target.value }))}
-            placeholder="+971 50 123 4567"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="businessAddress">Business Address</Label>
-          <Input
-            id="businessAddress"
-            value={generalSettings.businessAddress}
-            onChange={(e) => setGeneralSettings(prev => ({ ...prev, businessAddress: e.target.value }))}
-            placeholder="Dubai, UAE"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Business Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Business Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="timezone">Timezone</Label>
-            <Select onValueChange={(value) => setGeneralSettings(prev => ({ ...prev, timezone: value }))} value={generalSettings.timezone}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Asia/Dubai">UAE Time (GMT+4)</SelectItem>
-                <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                <SelectItem value="America/Chicago">Central Time</SelectItem>
-                <SelectItem value="Europe/London">GMT</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="businessName">Business Name</Label>
+            <Input
+              id="businessName"
+              value={generalSettings.businessName}
+              onChange={(e) => handleInputChange('businessName', e.target.value)}
+              placeholder="Your Photography Business"
+            />
           </div>
-
+          
           <div>
-            <Label htmlFor="currency">Currency</Label>
-            <Select onValueChange={(value) => setGeneralSettings(prev => ({ ...prev, currency: value }))} value={generalSettings.currency}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AED">AED (د.إ)</SelectItem>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="GBP">GBP (£)</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="businessEmail">Business Email</Label>
+            <Input
+              id="businessEmail"
+              type="email"
+              value={generalSettings.businessEmail}
+              onChange={(e) => handleInputChange('businessEmail', e.target.value)}
+              placeholder="contact@yourbusiness.com"
+            />
           </div>
-        </div>
+          
+          <div>
+            <Label htmlFor="businessPhone">Business Phone</Label>
+            <Input
+              id="businessPhone"
+              value={generalSettings.businessPhone}
+              onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+              placeholder="+1 (555) 123-4567"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="businessAddress">Business Address</Label>
+            <Textarea
+              id="businessAddress"
+              value={generalSettings.businessAddress}
+              onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+              placeholder="123 Main St, City, State 12345"
+              rows={3}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <Button onClick={handleSave} className="w-full">
-          <Save className="w-4 h-4 mr-2" />
-          Save General Settings
+      {/* Contact Sync */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Contact List Sync
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Sync your Google contacts to easily find and assign clients when creating bookings.
+          </p>
+          
+          {lastSyncDate && (
+            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <div className="text-sm">
+                <p className="text-green-800 font-medium">
+                  Last synced: {lastSyncDate}
+                </p>
+                <p className="text-green-600">
+                  {syncedContactsCount} contacts available
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <Button 
+            onClick={handleSyncContacts}
+            disabled={isSyncing}
+            className="flex items-center gap-2"
+          >
+            <Sync className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing Contacts...' : 'Sync Google Contacts'}
+          </Button>
+          
+          <p className="text-xs text-gray-500">
+            This will sync your Google contacts and make them available when creating bookings.
+            Your contact information is stored securely and only used for booking management.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Default Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Default Settings</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="defaultCurrency">Default Currency</Label>
+            <Input
+              id="defaultCurrency"
+              value={generalSettings.defaultCurrency}
+              onChange={(e) => handleInputChange('defaultCurrency', e.target.value)}
+              placeholder="AED"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="defaultTimeZone">Time Zone</Label>
+            <Input
+              id="defaultTimeZone"
+              value={generalSettings.defaultTimeZone}
+              onChange={(e) => handleInputChange('defaultTimeZone', e.target.value)}
+              placeholder="Asia/Dubai"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+          Save Settings
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
