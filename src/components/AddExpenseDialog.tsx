@@ -30,6 +30,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
     time: currentTime,
     category: '',
     relatedBooking: '',
+    relatedTeamMember: '',
     notes: ''
   });
 
@@ -42,6 +43,13 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
     'Family Summer Photos'
   ];
 
+  // Sample team members for linking
+  const teamMembers = [
+    'Alex Thompson',
+    'Emma Wilson',
+    'James Rodriguez'
+  ];
+
   const expenseCategories = [
     'Equipment Rental',
     'Transportation',
@@ -51,6 +59,8 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
     'Insurance',
     'Office Supplies',
     'Professional Services',
+    'Team Member Advance',
+    'Salary Payment',
     'Other'
   ];
 
@@ -120,6 +130,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
       time: currentTime,
       category: '',
       relatedBooking: '',
+      relatedTeamMember: '',
       notes: ''
     });
     setErrors({});
@@ -211,6 +222,21 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
                 <SelectItem value="none">None</SelectItem>
                 {availableBookings.map((booking) => (
                   <SelectItem key={booking} value={booking}>{booking}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="relatedTeamMember">Related Team Member (Optional)</Label>
+            <Select onValueChange={(value) => handleInputChange('relatedTeamMember', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Link to team member" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member} value={member}>{member}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

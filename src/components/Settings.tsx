@@ -46,7 +46,7 @@ const Settings = () => {
           </TabsList>
         </div>
 
-        <div className="pt-4">
+        <div className="pt-16 sm:pt-12">
           <TabsContent value="general" className="mt-0 focus-visible:outline-none">
             <GeneralTab />
           </TabsContent>
