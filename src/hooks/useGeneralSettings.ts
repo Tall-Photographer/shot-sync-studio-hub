@@ -6,8 +6,8 @@ export interface GeneralSettings {
   businessEmail: string;
   businessPhone: string;
   businessAddress: string;
-  timezone: string;
-  currency: string;
+  defaultTimeZone: string;
+  defaultCurrency: string;
 }
 
 export const useGeneralSettings = () => {
@@ -16,8 +16,8 @@ export const useGeneralSettings = () => {
     businessEmail: '',
     businessPhone: '',
     businessAddress: '',
-    timezone: 'Asia/Dubai',
-    currency: 'AED'
+    defaultTimeZone: 'Asia/Dubai',
+    defaultCurrency: 'AED'
   });
 
   useEffect(() => {

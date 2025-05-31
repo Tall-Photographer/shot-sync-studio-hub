@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
-import { Sync, Users, CheckCircle } from 'lucide-react';
+import { RefreshCw, Users, CheckCircle } from 'lucide-react';
 
 export const GeneralTab = () => {
   const { generalSettings, setGeneralSettings, saveGeneralSettings } = useGeneralSettings();
@@ -158,7 +158,7 @@ export const GeneralTab = () => {
             disabled={isSyncing}
             className="flex items-center gap-2"
           >
-            <Sync className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Syncing Contacts...' : 'Sync Google Contacts'}
           </Button>
           
