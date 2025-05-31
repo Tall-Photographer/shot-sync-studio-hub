@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, Users, DollarSign, BookOpen, Home, Settings } from 'lucide-react';
+import { Calendar, Users, BookOpen, Home, Settings } from 'lucide-react';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -13,13 +13,12 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
     { id: 'bookings', label: 'Bookings', icon: BookOpen },
     { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'team', label: 'Team', icon: Users },
-    { id: 'financials', label: 'Finance', icon: DollarSign },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
-      <div className="grid grid-cols-6 gap-1">
+      <div className="grid grid-cols-5 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

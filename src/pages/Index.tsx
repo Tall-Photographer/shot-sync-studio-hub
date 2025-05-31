@@ -11,6 +11,10 @@ import BottomNavigation from '@/components/BottomNavigation';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  const handleNavigateToFinancials = () => {
+    setActiveTab('financials');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -24,7 +28,7 @@ const Index = () => {
       case 'financials':
         return <Financials />;
       case 'settings':
-        return <Settings />;
+        return <Settings onNavigateToFinancials={handleNavigateToFinancials} />;
       default:
         return <Dashboard />;
     }

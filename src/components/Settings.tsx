@@ -1,14 +1,26 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Key, Shield, Bell, Palette } from 'lucide-react';
+import { User, Key, Shield, Bell, Palette, DollarSign } from 'lucide-react';
 import { GeneralTab } from './settings/GeneralTab';
 import { ApiTab } from './settings/ApiTab';
 import { SecurityTab } from './settings/SecurityTab';
 import { NotificationsTab } from './settings/NotificationsTab';
 import { AppearanceTab } from './settings/AppearanceTab';
+import FinanceTab from './settings/FinanceTab';
 
-const Settings = () => {
+interface SettingsProps {
+  onNavigateToFinancials?: () => void;
+}
+
+const Settings = ({ onNavigateToFinancials }: SettingsProps) => {
+  const handleViewFinancials = () => {
+    console.log('Navigating to financial dashboard');
+    if (onNavigateToFinancials) {
+      onNavigateToFinancials();
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
       <div className="flex items-center justify-between pt-4">
@@ -17,7 +29,7 @@ const Settings = () => {
 
       <Tabs defaultValue="general" className="space-y-6">
         <div className="sticky top-0 bg-gray-50 z-10 pb-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1 h-14 sm:h-12 p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 h-14 sm:h-12 p-1">
             <TabsTrigger value="general" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
               <User className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline truncate">General</span>
@@ -43,6 +55,11 @@ const Settings = () => {
               <span className="hidden sm:inline truncate">Appearance</span>
               <span className="sm:hidden">App</span>
             </TabsTrigger>
+            <TabsTrigger value="finance" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+              <DollarSign className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Finance</span>
+              <span className="sm:hidden">Fin</span>
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -65,6 +82,10 @@ const Settings = () => {
 
           <TabsContent value="appearance" className="mt-0 focus-visible:outline-none">
             <AppearanceTab />
+          </TabsContent>
+
+          <TabsContent value="finance" className="mt-0 focus-visible:outline-none">
+            <FinanceTab onViewFinancials={handleViewFinancials} />
           </TabsContent>
         </div>
       </Tabs>
