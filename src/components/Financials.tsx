@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Financials = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedMonth, setSelectedMonth] = useState('2025-05');
+  const [selectedPeriod, setSelectedPeriod] = useState('2025-05');
   const [selectedTeamMember, setSelectedTeamMember] = useState('all');
   const [selectedClient, setSelectedClient] = useState('all');
   const { toast } = useToast();
@@ -112,8 +112,8 @@ const Financials = () => {
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between pt-4">
-        <h1 className="text-2xl font-bold text-gray-900">Financials</h1>
+      <div className="pt-4">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Financials</h1>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={handleExportData}>
             Export
@@ -128,12 +128,16 @@ const Financials = () => {
       {/* Filters */}
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Month</label>
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Period</label>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all-time">All Time</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+              <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2023">2023</SelectItem>
               <SelectItem value="2025-05">May 2025</SelectItem>
               <SelectItem value="2025-04">April 2025</SelectItem>
               <SelectItem value="2025-03">March 2025</SelectItem>
