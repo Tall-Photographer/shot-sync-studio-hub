@@ -15,10 +15,14 @@ const Index = () => {
     setActiveTab('financials');
   };
 
+  const handleNavigate = (tab: string) => {
+    setActiveTab(tab);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
       case 'bookings':
         return <Bookings />;
       case 'calendar':
@@ -30,7 +34,7 @@ const Index = () => {
       case 'settings':
         return <Settings onNavigateToFinancials={handleNavigateToFinancials} />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
     }
   };
 

@@ -6,7 +6,11 @@ import { Button } from '@/components/ui/button';
 import NewBookingDialog from './NewBookingDialog';
 import AddExpenseDialog from './AddExpenseDialog';
 
-const Dashboard = () => {
+interface DashboardProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const Dashboard = ({ onNavigate }: DashboardProps) => {
   const upcomingBookings = [
     {
       id: 1,
@@ -31,10 +35,10 @@ const Dashboard = () => {
   ];
 
   const stats = [
-    { title: 'This Month Revenue', value: 'AED 45,680', icon: DollarSign, color: 'text-green-600' },
-    { title: 'Active Bookings', value: '8', icon: Calendar, color: 'text-blue-600' },
-    { title: 'Total Clients', value: '34', icon: Users, color: 'text-purple-600' },
-    { title: 'Pending Payments', value: '3', icon: Bell, color: 'text-orange-600' }
+    { title: 'This Month Revenue', value: 'AED 45,680', icon: DollarSign, color: 'text-green-600', navigateTo: 'financials' },
+    { title: 'Active Bookings', value: '8', icon: Calendar, color: 'text-blue-600', navigateTo: 'bookings' },
+    { title: 'Total Clients', value: '34', icon: Users, color: 'text-purple-600', navigateTo: 'team' },
+    { title: 'Pending Payments', value: '3', icon: Bell, color: 'text-orange-600', navigateTo: 'financials' }
   ];
 
   const handleBookingAdded = (newBooking: any) => {
@@ -45,10 +49,27 @@ const Dashboard = () => {
     console.log('New expense added to dashboard:', newExpense);
   };
 
+  const handleStatCardClick = (navigateTo: string) => {
+    if (onNavigate) {
+      onNavigate(navigateTo);
+    }
+  };
+
+  const handleSeeAllBookings = () => {
+    if (onNavigate) {
+      onNavigate('bookings');
+    }
+  };
+
+  const handleNotificationClick = () => {
+    console.log('Notification clicked - opening notifications');
+    // You can add notification functionality here
+  };
+
   return (
     <div className="p-4 space-y-6 max-w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 gap-4">
+      <div className="flex items-start justify-between pt-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
             <Camera className="w-6 h-6 text-white" />
@@ -58,7 +79,13 @@ const Dashboard = () => {
             <p className="text-gray-600 text-sm">Photography Business</p>
           </div>
         </div>
-        <Bell className="w-6 h-6 text-gray-600 flex-shrink-0" />
+        <button
+          onClick={handleNotificationClick}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+          aria-label="Notifications"
+        >
+          <Bell className="w-6 h-6 text-gray-600" />
+        </button>
       </div>
 
       {/* Action Buttons */}
@@ -87,7 +114,11 @@ const Dashboard = () => {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {stats.map((stat, index) => (
-          <Card key={index} className="bg-white shadow-sm border-0">
+          <Card 
+            key={index} 
+            className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-shadow active:scale-95 transform transition-transform"
+            onClick={() => handleStatCardClick(stat.navigateTo)}
+          >
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="p-2 rounded-lg bg-gray-50 flex-shrink-0">
@@ -104,7 +135,10 @@ const Dashboard = () => {
       </div>
 
       {/* Calendar Overview */}
-      <Card className="bg-white shadow-sm border-0">
+      <Card 
+        className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-shadow"
+        onClick={() => handleStatCardClick('calendar')}
+      >
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold">This Week</CardTitle>
         </CardHeader>
@@ -133,11 +167,20 @@ const Dashboard = () => {
       <Card className="bg-white shadow-sm border-0">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-semibold">Upcoming Bookings</CardTitle>
-          <span className="text-sm text-blue-600 font-medium">See All</span>
+          <button 
+            onClick={handleSeeAllBookings}
+            className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors"
+          >
+            See All
+          </button>
         </CardHeader>
         <CardContent className="space-y-3 sm:space-y-4">
           {upcomingBookings.map((booking) => (
-            <div key={booking.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <div 
+              key={booking.id} 
+              className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:bg-gray-100 transition-colors active:scale-98 transform transition-transform"
+              onClick={() => handleStatCardClick('bookings')}
+            >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">
                   {booking.client}
