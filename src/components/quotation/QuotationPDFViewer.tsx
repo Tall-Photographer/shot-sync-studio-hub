@@ -87,14 +87,14 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
       </div>
 
       <Card className="print:shadow-none print:border-none">
-        <CardContent className="quotation-content p-6 space-y-4 print:p-0">
+        <CardContent className="quotation-content p-4 space-y-3 print:p-0 max-w-[210mm] mx-auto" style={{ fontSize: '8px', lineHeight: '1.2' }}>
           {/* Header */}
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <h1 className="text-sm font-normal text-gray-600 tracking-wider">
+              <h1 style={{ fontSize: '8px' }} className="font-normal text-gray-600 tracking-wider">
                 AHMED ADEL PHOTOGRAPHY SERVICES
               </h1>
-              <div className="text-xs text-gray-600 space-y-0.5">
+              <div style={{ fontSize: '8px' }} className="text-gray-600 space-y-0.5">
                 <div>CNN BUILDING - 2 KING SALMAN BIN</div>
                 <div>ABDULAZIZ AL SAUD ST -DMC - DUBAI, UAE</div>
                 <div>WWW.TALLPHOTOGRAPHER.COM</div>
@@ -107,50 +107,51 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
                 <img 
                   src={generalSettings.businessLogo} 
                   alt="Business Logo" 
-                  className="max-w-[120px] max-h-[120px] object-contain"
+                  className="object-contain"
+                  style={{ maxWidth: 'none', maxHeight: 'none' }}
                 />
               ) : (
                 <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-xs text-gray-500">LOGO</span>
+                  <span style={{ fontSize: '6px' }} className="text-gray-500">LOGO</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Document Title and Details */}
-          <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-gray-900">{documentTitle.toUpperCase()}</h2>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-1 text-sm">
-                <div><strong>{quotation.quotationNumber}</strong></div>
-                <div>ISSUE DATE: {quotation.issueDate}</div>
-                <div>SHOOTING DATE: {quotation.shootingDate || 'TBD'}</div>
+          <div className="space-y-2">
+            <h2 style={{ fontSize: '20px' }} className="font-bold text-gray-900">{documentTitle.toUpperCase()}</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <div style={{ fontSize: '8px' }}><strong>{quotation.quotationNumber}</strong></div>
+                <div style={{ fontSize: '8px' }}>ISSUE DATE: {quotation.issueDate}</div>
+                <div style={{ fontSize: '8px' }}>SHOOTING DATE: {quotation.shootingDate || 'TBD'}</div>
               </div>
-              <div className="text-right text-sm">
-                <div className="font-semibold">BILL TO: {quotation.billTo.name.toUpperCase()}</div>
+              <div className="text-right">
+                <div style={{ fontSize: '8px' }} className="font-semibold">BILL TO: {quotation.billTo.name.toUpperCase()}</div>
               </div>
             </div>
           </div>
 
           {/* Services Table */}
-          <div className="space-y-4">
-            <div className="flex justify-between text-lg font-semibold border-b pb-2">
+          <div className="space-y-3">
+            <div className="flex justify-between border-b pb-1" style={{ fontSize: '10px', fontWeight: 'bold' }}>
               <span>DESCRIPTION</span>
               <span>PRICE</span>
             </div>
 
             {quotation.items.map((item, index) => (
-              <div key={item.id} className="space-y-2">
-                <div className="font-semibold text-base">{item.description.toUpperCase()}</div>
+              <div key={item.id} className="space-y-1">
+                <div style={{ fontSize: '10px', fontWeight: 'bold' }}>{item.description.toUpperCase()}</div>
                 {item.detailedDescription && (
-                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-0.5 ml-4">
+                  <ul className="list-disc list-inside text-gray-700 space-y-0.5 ml-2">
                     {item.detailedDescription.split('\n').map((line, lineIndex) => (
-                      <li key={lineIndex}>{line}</li>
+                      <li key={lineIndex} style={{ fontSize: '8px' }}>{line}</li>
                     ))}
                   </ul>
                 )}
                 <div className="text-right">
-                  <span className="text-lg font-semibold">{item.total.toLocaleString()} AED</span>
+                  <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{item.total.toLocaleString()} AED</span>
                 </div>
               </div>
             ))}
@@ -159,28 +160,28 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
           {/* Deliverables */}
           {quotation.deliverables && (
             <div className="space-y-1">
-              <div className="font-semibold text-sm">DELIVERABLES:</div>
-              <div className="text-sm text-gray-700 ml-4">
+              <div style={{ fontSize: '10px', fontWeight: 'bold' }}>DELIVERABLES:</div>
+              <div className="text-gray-700 ml-2">
                 {quotation.deliverables.split('\n').map((line, index) => (
-                  <div key={index}>• {line}</div>
+                  <div key={index} style={{ fontSize: '8px' }}>• {line}</div>
                 ))}
               </div>
             </div>
           )}
 
           {/* Total */}
-          <div className="space-y-3 pt-4 border-t">
-            <div className="flex justify-between text-2xl font-bold">
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex justify-between" style={{ fontSize: '10px', fontWeight: 'bold' }}>
               <span>TOTAL</span>
               <span>{quotation.total.toLocaleString()} AED</span>
             </div>
 
             {/* Payment Terms */}
             {quotation.paymentTerms && (
-              <div className="space-y-1 text-sm">
-                <div className="font-semibold">• PAYMENT TERMS</div>
+              <div className="space-y-1">
+                <div style={{ fontSize: '10px', fontWeight: 'bold' }}>• PAYMENT TERMS</div>
                 {quotation.paymentTerms.split('\n').map((term, index) => (
-                  <div key={index} className="ml-2">• {term}</div>
+                  <div key={index} style={{ fontSize: '8px' }} className="ml-1">• {term}</div>
                 ))}
               </div>
             )}
@@ -188,30 +189,30 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
 
           {/* Bank Details */}
           {quotation.bankDetails && (
-            <div className="text-center space-y-0.5 text-sm pt-4 border-t">
+            <div className="text-center space-y-0.5 pt-2 border-t">
               {quotation.bankDetails.split('\n').map((line, index) => {
                 if (line.includes(':')) {
                   const [label, value] = line.split(':');
                   return (
-                    <div key={index}>
+                    <div key={index} style={{ fontSize: '8px' }}>
                       <strong>{label.trim()}:</strong> {value.trim()}
                     </div>
                   );
                 }
-                return <div key={index}>{line}</div>;
+                return <div key={index} style={{ fontSize: '8px' }}>{line}</div>;
               })}
             </div>
           )}
 
           {/* Terms and Conditions */}
           {quotation.termsAndConditions && (
-            <div className="text-xs text-gray-600 space-y-1 pt-4 border-t">
-              <div className="font-semibold">
+            <div className="text-gray-600 space-y-1 pt-2 border-t">
+              <div style={{ fontSize: '6px', fontWeight: 'bold' }}>
                 {quotation.termsAndConditions.split('\n')[0]}
               </div>
               <ul className="space-y-0.5">
                 {quotation.termsAndConditions.split('\n').slice(1).map((term, index) => (
-                  <li key={index}>• {term}</li>
+                  <li key={index} style={{ fontSize: '6px' }}>• {term}</li>
                 ))}
               </ul>
             </div>
