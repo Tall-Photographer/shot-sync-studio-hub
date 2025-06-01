@@ -14,7 +14,6 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
   const { toast } = useToast();
 
   const handleDownload = () => {
-    // Generate PDF and download
     window.print();
   };
 
@@ -98,11 +97,13 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
             {quotation.items.map((item, index) => (
               <div key={item.id} className="space-y-4">
                 <div className="font-semibold text-base">{item.description.toUpperCase()}</div>
-                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
-                  <li>{item.quantity} PRODUCTS</li>
-                  <li>5 IMAGES EACH</li>
-                  <li>UP TO 4 HOURS AT CLIENT'S LOCATION</li>
-                </ul>
+                {item.detailedDescription && (
+                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
+                    {item.detailedDescription.split('\n').map((line, lineIndex) => (
+                      <li key={lineIndex}>{line}</li>
+                    ))}
+                  </ul>
+                )}
                 <div className="text-right">
                   <span className="text-lg font-semibold">{item.total.toLocaleString()} AED</span>
                 </div>
@@ -113,9 +114,11 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
           {/* Deliverables */}
           <div className="space-y-2">
             <div className="font-semibold text-sm">DELIVERABLES:</div>
-            <ul className="list-disc list-inside text-sm text-gray-700 ml-4">
-              <li>ALL FINAL EDITED IMAGES TO BE DELIVERED IN 2 WORKING DAYS</li>
-            </ul>
+            <div className="text-sm text-gray-700 ml-4">
+              {quotation.deliverables.split('\n').map((line, index) => (
+                <div key={index}>• {line}</div>
+              ))}
+            </div>
           </div>
 
           {/* Total */}
@@ -136,27 +139,28 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
 
           {/* Bank Details */}
           <div className="text-center space-y-1 text-sm pt-6 border-t">
-            <div><strong>BANK NAME:</strong> ADCB BANK</div>
-            <div><strong>ACCOUNT NAME:</strong> AHMED ADEL OSMAN MAHMOUD ATTIA</div>
-            <div><strong>ACCOUNT NUMBER (AED):</strong> 11391890910001</div>
-            <div><strong>IBAN:</strong> AE370030011391890910001</div>
-            <div><strong>SWIFT CODE:</strong> ADCBAEAA</div>
+            {quotation.bankDetails.split('\n').map((line, index) => {
+              if (line.includes(':')) {
+                const [label, value] = line.split(':');
+                return (
+                  <div key={index}>
+                    <strong>{label.trim()}:</strong> {value.trim()}
+                  </div>
+                );
+              }
+              return <div key={index}>{line}</div>;
+            })}
           </div>
 
           {/* Terms and Conditions */}
           <div className="text-xs text-gray-600 space-y-2 pt-6 border-t">
             <div className="font-semibold">
-              The above quotation is made as per the brief shared and subject to the conditions noted below:
+              {quotation.termsAndConditions.split('\n')[0]}
             </div>
             <ul className="space-y-1">
-              <li>• Once signed this Estimate becomes a contract between two parties. ("Contract")</li>
-              <li>• Any dispute, difference, controversy, or claim arising out of or in connection with this contract, including (but not limited to) any question regarding its existence, validity, breach, termination, or application thereof, shall be subject to the exclusive jurisdiction of the Courts of the Dubai International Financial Centre ("the DIFC Courts").</li>
-              <li>• Less than 48-hour cancellation notice before the shoot, 50% of the total amount will be due.</li>
-              <li>• Additional production hours (including but not limited to filming, photography, and editing) are charged AED 500 per hour.</li>
-              <li>• Late payment fee of AED 250 per 15-day delay will be applied from the payment due day.</li>
-              <li>• Tallphotographer.com retains ownership of the RAW Files.</li>
-              <li>• Tallphotographer.com owns exclusive rights to any footage until the payment is received. The client waives all the claims.</li>
-              <li>• The individual signing this contract is the authorized signatory for the Client.</li>
+              {quotation.termsAndConditions.split('\n').slice(1).map((term, index) => (
+                <li key={index}>• {term}</li>
+              ))}
             </ul>
           </div>
         </CardContent>

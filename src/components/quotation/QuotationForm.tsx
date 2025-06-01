@@ -26,23 +26,42 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
     items: [
       {
         id: '1',
-        description: 'Product Photography',
+        description: 'PRODUCT PHOTOGRAPHY',
         quantity: 21,
         price: 150,
-        total: 3150
+        total: 3150,
+        detailedDescription: '5 PRODUCTS\n5 IMAGES EACH\nUP TO 4 HOURS AT CLIENT\'S LOCATION'
       }
     ] as QuotationItem[],
-    paymentTerms: '50% booking confirmation\n50% when deliverables are ready'
+    deliverables: 'ALL FINAL EDITED IMAGES TO BE DELIVERED IN 2 WORKING DAYS',
+    paymentTerms: '50% booking confirmation\n50% when deliverables are ready',
+    bankDetails: `BANK NAME: ADCB BANK
+ACCOUNT NAME: AHMED ADEL OSMAN MAHMOUD ATTIA
+ACCOUNT NUMBER (AED): 11391890910001
+IBAN: AE370030011391890910001
+SWIFT CODE: ADCBAEAA`,
+    termsAndConditions: `The above quotation is made as per the brief shared and subject to the conditions noted below:
+Once signed this Estimate stands as a binding contract between two parties. ("Contract")
+Any dispute, difference, controversy, or claim arising out of or in connection with this contract, including (but not limited to) any question regarding its existence, validity, interpretation, performance, discharge and applicable remedies, shall be subject to the exclusive jurisdiction of the Courts of the Dubai International Financial Centre ("the DIFC Courts").
+Less than 48-hour cancellation notice before the shoot, 50% of the total amount will be due.
+Additional production hours (including but not limited to filming, photography, and editing) are charged AED 500 per hour.
+Late payment fee of AED 250 per 15-day delay will be applied from the payment due day.
+Tallphotographer.com retains ownership of the RAW Files.
+Tallphotographer.com owns exclusive rights to any footage until the payment is received. The client waves all the claims.
+The individual signing this contract is the authorized signatory for the Client.`
   });
 
   useEffect(() => {
     if (quotation) {
       setFormData({
         issueDate: quotation.issueDate,
-        shootingDate: quotation.shootingDate,
+        shootingDate: quotation.shootingDate || '',
         billTo: quotation.billTo,
         items: quotation.items,
-        paymentTerms: quotation.paymentTerms
+        deliverables: quotation.deliverables,
+        paymentTerms: quotation.paymentTerms,
+        bankDetails: quotation.bankDetails,
+        termsAndConditions: quotation.termsAndConditions
       });
     }
   }, [quotation]);
@@ -89,7 +108,8 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
       description: '',
       quantity: 1,
       price: 0,
-      total: 0
+      total: 0,
+      detailedDescription: ''
     };
     setFormData(prev => ({
       ...prev,
@@ -129,13 +149,12 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
           />
         </div>
         <div>
-          <Label htmlFor="shootingDate">Shooting Date</Label>
+          <Label htmlFor="shootingDate">Shooting Date (Optional)</Label>
           <Input
             id="shootingDate"
             type="date"
             value={formData.shootingDate}
             onChange={(e) => handleInputChange('shootingDate', e.target.value)}
-            required
           />
         </div>
       </div>
@@ -187,59 +206,73 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {formData.items.map((item, index) => (
-              <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-                <div className="col-span-5">
-                  <Label>Description</Label>
-                  <Input
-                    value={item.description}
-                    onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                    placeholder="Item description"
-                    required
-                  />
+              <div key={item.id} className="space-y-4 p-4 border rounded-lg">
+                <div className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-5">
+                    <Label>Service Description</Label>
+                    <Input
+                      value={item.description}
+                      onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                      placeholder="e.g., PRODUCT PHOTOGRAPHY"
+                      required
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Quantity</Label>
+                    <Input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
+                      min="1"
+                      required
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Price (AED)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.price}
+                      onChange={(e) => handleItemChange(index, 'price', parseFloat(e.target.value))}
+                      min="0"
+                      required
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Total</Label>
+                    <Input
+                      value={item.total.toFixed(2)}
+                      readOnly
+                      className="bg-gray-50"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    {formData.items.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeItem(index)}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <Label>Quantity</Label>
-                  <Input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(index, 'quantity', parseInt(e.target.value))}
-                    min="1"
-                    required
+                
+                <div>
+                  <Label htmlFor={`detailedDescription-${index}`}>Detailed Description (Optional)</Label>
+                  <Textarea
+                    id={`detailedDescription-${index}`}
+                    value={item.detailedDescription || ''}
+                    onChange={(e) => handleItemChange(index, 'detailedDescription', e.target.value)}
+                    placeholder="e.g., 5 PRODUCTS&#10;5 IMAGES EACH&#10;UP TO 4 HOURS AT CLIENT'S LOCATION"
+                    rows={3}
+                    className="font-mono text-sm"
                   />
-                </div>
-                <div className="col-span-2">
-                  <Label>Price (AED)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.price}
-                    onChange={(e) => handleItemChange(index, 'price', parseFloat(e.target.value))}
-                    min="0"
-                    required
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Total</Label>
-                  <Input
-                    value={item.total.toFixed(2)}
-                    readOnly
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="col-span-1">
-                  {formData.items.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeItem(index)}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
                 </div>
               </div>
             ))}
@@ -258,6 +291,18 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
       </Card>
 
       <div>
+        <Label htmlFor="deliverables">Deliverables</Label>
+        <Textarea
+          id="deliverables"
+          value={formData.deliverables}
+          onChange={(e) => handleInputChange('deliverables', e.target.value)}
+          placeholder="Enter deliverables details"
+          rows={3}
+          required
+        />
+      </div>
+
+      <div>
         <Label htmlFor="paymentTerms">Payment Terms</Label>
         <Textarea
           id="paymentTerms"
@@ -265,6 +310,30 @@ const QuotationForm = ({ quotation, onSave, onCancel }: QuotationFormProps) => {
           onChange={(e) => handleInputChange('paymentTerms', e.target.value)}
           placeholder="Enter payment terms"
           rows={3}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="bankDetails">Bank Details</Label>
+        <Textarea
+          id="bankDetails"
+          value={formData.bankDetails}
+          onChange={(e) => handleInputChange('bankDetails', e.target.value)}
+          placeholder="Enter bank details"
+          rows={5}
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="termsAndConditions">Terms and Conditions</Label>
+        <Textarea
+          id="termsAndConditions"
+          value={formData.termsAndConditions}
+          onChange={(e) => handleInputChange('termsAndConditions', e.target.value)}
+          placeholder="Enter terms and conditions"
+          rows={8}
           required
         />
       </div>

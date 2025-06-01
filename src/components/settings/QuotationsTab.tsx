@@ -1,14 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit, Share, FileText, Trash2, Download } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Edit, Trash2, Eye, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import QuotationForm from '../quotation/QuotationForm';
 import QuotationPDFViewer from '../quotation/QuotationPDFViewer';
@@ -19,41 +13,55 @@ export interface QuotationItem {
   quantity: number;
   price: number;
   total: number;
+  detailedDescription?: string;
 }
 
 export interface Quotation {
   id: string;
   quotationNumber: string;
   issueDate: string;
-  shootingDate: string;
+  shootingDate?: string;
   billTo: {
     name: string;
     address: string;
     rtnNumber: string;
   };
   items: QuotationItem[];
+  deliverables: string;
+  paymentTerms: string;
+  bankDetails: string;
+  termsAndConditions: string;
   subtotal: number;
   total: number;
-  paymentTerms: string;
-  status: 'draft' | 'sent' | 'accepted' | 'converted';
   createdAt: string;
   updatedAt: string;
 }
 
 const QuotationsTab = () => {
-  const [quotations, setQuotations] = useState<Quotation[]>([]);
-  const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [quotations, setQuotations] = useState<Quotation[]>(() => {
+    const saved = localStorage.getItem('quotations');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showForm, setShowForm] = useState(false);
   const [editingQuotation, setEditingQuotation] = useState<Quotation | null>(null);
+  const [viewingQuotation, setViewingQuotation] = useState<Quotation | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Load quotations from localStorage
-    const savedQuotations = localStorage.getItem('quotations');
-    if (savedQuotations) {
-      setQuotations(JSON.parse(savedQuotations));
-    }
-  }, []);
+  const generateQuotationNumber = () => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const dateStr = `${day}/${month}/${year}`;
+    
+    // Find the highest sequence number for today
+    const todayQuotations = quotations.filter(q => 
+      q.quotationNumber.startsWith(dateStr)
+    );
+    
+    const sequenceNumber = todayQuotations.length + 1;
+    return `${dateStr}/${sequenceNumber}`;
+  };
 
   const saveQuotations = (updatedQuotations: Quotation[]) => {
     setQuotations(updatedQuotations);
@@ -61,38 +69,52 @@ const QuotationsTab = () => {
   };
 
   const handleSaveQuotation = (quotationData: Partial<Quotation>) => {
+    const now = new Date().toISOString();
+    
     if (editingQuotation) {
-      // Update existing quotation
       const updatedQuotations = quotations.map(q => 
         q.id === editingQuotation.id 
-          ? { ...q, ...quotationData, updatedAt: new Date().toISOString() }
+          ? { ...editingQuotation, ...quotationData, updatedAt: now }
           : q
       );
       saveQuotations(updatedQuotations);
       toast({
-        title: "Quotation Updated",
-        description: "The quotation has been successfully updated."
+        title: "Success",
+        description: "Quotation updated successfully"
       });
     } else {
-      // Create new quotation
       const newQuotation: Quotation = {
         id: Date.now().toString(),
-        quotationNumber: `NO.${Date.now().toString().slice(-6)}/${new Date().getFullYear()}`,
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        quotationNumber: generateQuotationNumber(),
+        createdAt: now,
+        updatedAt: now,
+        deliverables: 'ALL FINAL EDITED IMAGES TO BE DELIVERED IN 2 WORKING DAYS',
+        bankDetails: `BANK NAME: ADCB BANK
+ACCOUNT NAME: AHMED ADEL OSMAN MAHMOUD ATTIA
+ACCOUNT NUMBER (AED): 11391890910001
+IBAN: AE370030011391890910001
+SWIFT CODE: ADCBAEAA`,
+        termsAndConditions: `The above quotation is made as per the brief shared and subject to the conditions noted below:
+Once signed this Estimate stands as a binding contract between two parties. ("Contract")
+Any dispute, difference, controversy, or claim arising out of or in connection with this contract, including (but not limited to) any question regarding its existence, validity, interpretation, performance, discharge and applicable remedies, shall be subject to the exclusive jurisdiction of the Courts of the Dubai International Financial Centre ("the DIFC Courts").
+Less than 48-hour cancellation notice before the shoot, 50% of the total amount will be due.
+Additional production hours (including but not limited to filming, photography, and editing) are charged AED 500 per hour.
+Late payment fee of AED 250 per 15-day delay will be applied from the payment due day.
+Tallphotographer.com retains ownership of the RAW Files.
+Tallphotographer.com owns exclusive rights to any footage until the payment is received. The client waves all the claims.
+The individual signing this contract is the authorized signatory for the Client.`,
         ...quotationData
       } as Quotation;
       
-      const updatedQuotations = [newQuotation, ...quotations];
+      const updatedQuotations = [...quotations, newQuotation];
       saveQuotations(updatedQuotations);
       toast({
-        title: "Quotation Created",
-        description: "New quotation has been successfully created."
+        title: "Success",
+        description: "Quotation created successfully"
       });
     }
     
-    setIsFormOpen(false);
+    setShowForm(false);
     setEditingQuotation(null);
   };
 
@@ -100,201 +122,135 @@ const QuotationsTab = () => {
     const updatedQuotations = quotations.filter(q => q.id !== id);
     saveQuotations(updatedQuotations);
     toast({
-      title: "Quotation Deleted",
-      description: "The quotation has been successfully deleted."
+      title: "Success",
+      description: "Quotation deleted successfully"
     });
   };
 
-  const handleConvertToInvoice = (quotation: Quotation) => {
-    const updatedQuotations = quotations.map(q => 
-      q.id === quotation.id 
-        ? { ...q, status: 'converted' as const, updatedAt: new Date().toISOString() }
-        : q
-    );
-    saveQuotations(updatedQuotations);
+  const convertToInvoice = (quotation: Quotation) => {
+    // Here you could save to invoices array in localStorage
+    console.log('Converting to invoice:', quotation);
     toast({
-      title: "Converted to Invoice",
-      description: "The quotation has been converted to an invoice."
+      title: "Success",
+      description: "Quotation converted to invoice"
     });
   };
 
-  const handleShareQuotation = (quotation: Quotation) => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Quotation ${quotation.quotationNumber}`,
-        text: `Quotation for ${quotation.billTo.name}`,
-        url: window.location.href
-      });
-    } else {
-      // Fallback for desktop - copy link to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link Copied",
-        description: "Quotation link copied to clipboard."
-      });
-    }
-  };
+  if (viewingQuotation) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => setViewingQuotation(null)}>
+            ← Back to Quotations
+          </Button>
+        </div>
+        <QuotationPDFViewer quotation={viewingQuotation} />
+      </div>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'accepted': return 'bg-green-100 text-green-800';
-      case 'converted': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  if (showForm) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">
+            {editingQuotation ? 'Edit Quotation' : 'Create New Quotation'}
+          </h2>
+        </div>
+        <QuotationForm
+          quotation={editingQuotation}
+          onSave={handleSaveQuotation}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingQuotation(null);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Quotations & Invoices</h2>
-          <p className="text-gray-600">Manage your quotations and convert them to invoices</p>
-        </div>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => setEditingQuotation(null)}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Quotation
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingQuotation ? 'Edit Quotation' : 'Create New Quotation'}
-              </DialogTitle>
-            </DialogHeader>
-            <QuotationForm
-              quotation={editingQuotation}
-              onSave={handleSaveQuotation}
-              onCancel={() => {
-                setIsFormOpen(false);
-                setEditingQuotation(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <h2 className="text-xl font-semibold">Quotations</h2>
+        <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Create Quotation
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {quotations.map((quotation) => (
-          <Card key={quotation.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{quotation.quotationNumber}</CardTitle>
-                <Badge className={getStatusColor(quotation.status)}>
-                  {quotation.status}
-                </Badge>
-              </div>
-              <p className="text-sm text-gray-600">{quotation.billTo.name}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Issue Date:</span>
-                  <span>{quotation.issueDate}</span>
+      {quotations.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No quotations yet</h3>
+            <p className="text-gray-600 mb-4">Create your first quotation to get started</p>
+            <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Create First Quotation
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {quotations.map((quotation) => (
+            <Card key={quotation.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{quotation.quotationNumber}</CardTitle>
+                    <p className="text-sm text-gray-600">
+                      {quotation.billTo.name} • {quotation.issueDate}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">{quotation.total.toLocaleString()} AED</p>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total:</span>
-                  <span className="font-semibold">{quotation.total} AED</span>
-                </div>
-              </div>
-              
-              <div className="flex gap-1 mt-4">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    setEditingQuotation(quotation);
-                    setIsFormOpen(true);
-                  }}
-                  className="flex-1"
-                >
-                  <Edit className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-                
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <FileText className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <QuotationPDFViewer quotation={quotation} />
-                  </DialogContent>
-                </Dialog>
-                
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleShareQuotation(quotation)}
-                  className="flex-1"
-                >
-                  <Share className="w-3 h-3 mr-1" />
-                  Share
-                </Button>
-              </div>
-              
-              <div className="flex gap-1 mt-2">
-                {quotation.status !== 'converted' && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleConvertToInvoice(quotation)}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700"
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setViewingQuotation(quotation)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingQuotation(quotation);
+                      setShowForm(true);
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => convertToInvoice(quotation)}
+                    className="text-green-600 border-green-600 hover:bg-green-50"
                   >
                     Convert to Invoice
                   </Button>
-                )}
-                
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Quotation</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this quotation? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => handleDeleteQuotation(quotation.id)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {quotations.length === 0 && (
-        <Card className="p-8 text-center">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No quotations yet</h3>
-          <p className="text-gray-600 mb-4">Create your first quotation to get started</p>
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700"
-            onClick={() => setIsFormOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Quotation
-          </Button>
-        </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteQuotation(quotation.id)}
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </div>
   );
