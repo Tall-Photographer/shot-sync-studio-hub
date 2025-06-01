@@ -112,14 +112,16 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
           </div>
 
           {/* Deliverables */}
-          <div className="space-y-2">
-            <div className="font-semibold text-sm">DELIVERABLES:</div>
-            <div className="text-sm text-gray-700 ml-4">
-              {quotation.deliverables.split('\n').map((line, index) => (
-                <div key={index}>• {line}</div>
-              ))}
+          {quotation.deliverables && (
+            <div className="space-y-2">
+              <div className="font-semibold text-sm">DELIVERABLES:</div>
+              <div className="text-sm text-gray-700 ml-4">
+                {quotation.deliverables.split('\n').map((line, index) => (
+                  <div key={index}>• {line}</div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Total */}
           <div className="space-y-4 pt-6 border-t">
@@ -129,40 +131,46 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
             </div>
 
             {/* Payment Terms */}
-            <div className="space-y-2 text-sm">
-              <div className="font-semibold">• PAYMENT TERMS</div>
-              {quotation.paymentTerms.split('\n').map((term, index) => (
-                <div key={index} className="ml-2">• {term}</div>
-              ))}
-            </div>
+            {quotation.paymentTerms && (
+              <div className="space-y-2 text-sm">
+                <div className="font-semibold">• PAYMENT TERMS</div>
+                {quotation.paymentTerms.split('\n').map((term, index) => (
+                  <div key={index} className="ml-2">• {term}</div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Bank Details */}
-          <div className="text-center space-y-1 text-sm pt-6 border-t">
-            {quotation.bankDetails.split('\n').map((line, index) => {
-              if (line.includes(':')) {
-                const [label, value] = line.split(':');
-                return (
-                  <div key={index}>
-                    <strong>{label.trim()}:</strong> {value.trim()}
-                  </div>
-                );
-              }
-              return <div key={index}>{line}</div>;
-            })}
-          </div>
+          {quotation.bankDetails && (
+            <div className="text-center space-y-1 text-sm pt-6 border-t">
+              {quotation.bankDetails.split('\n').map((line, index) => {
+                if (line.includes(':')) {
+                  const [label, value] = line.split(':');
+                  return (
+                    <div key={index}>
+                      <strong>{label.trim()}:</strong> {value.trim()}
+                    </div>
+                  );
+                }
+                return <div key={index}>{line}</div>;
+              })}
+            </div>
+          )}
 
           {/* Terms and Conditions */}
-          <div className="text-xs text-gray-600 space-y-2 pt-6 border-t">
-            <div className="font-semibold">
-              {quotation.termsAndConditions.split('\n')[0]}
+          {quotation.termsAndConditions && (
+            <div className="text-xs text-gray-600 space-y-2 pt-6 border-t">
+              <div className="font-semibold">
+                {quotation.termsAndConditions.split('\n')[0]}
+              </div>
+              <ul className="space-y-1">
+                {quotation.termsAndConditions.split('\n').slice(1).map((term, index) => (
+                  <li key={index}>• {term}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-1">
-              {quotation.termsAndConditions.split('\n').slice(1).map((term, index) => (
-                <li key={index}>• {term}</li>
-              ))}
-            </ul>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
