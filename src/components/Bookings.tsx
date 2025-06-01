@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
-import { Plus, Calendar, User, MapPin, DollarSign, FileText, Edit, Receipt } from 'lucide-react';
+import { Plus, Calendar, User, MapPin, DollarSign, FileText, Edit, Receipt, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import QuotationDialog from './QuotationDialog';
 import NewBookingDialog from './NewBookingDialog';
 import EditBookingDialog from './EditBookingDialog';
@@ -67,6 +69,19 @@ const Bookings = () => {
     ));
   };
 
+  const handleCancelBooking = (bookingId: number) => {
+    setBookings(prev => prev.map(booking => 
+      booking.id === bookingId 
+        ? { ...booking, status: 'cancelled' }
+        : booking
+    ));
+    
+    toast({
+      title: "Booking Cancelled",
+      description: "The booking has been successfully cancelled",
+    });
+  };
+
   const handleCreateInvoice = (booking: any) => {
     console.log('Creating invoice for booking:', booking);
     toast({
@@ -102,7 +117,8 @@ const Bookings = () => {
   const tabs = [
     { id: 'all', label: 'All Bookings', count: bookings.length },
     { id: 'confirmed', label: 'Confirmed', count: bookings.filter(b => b.status === 'confirmed').length },
-    { id: 'pending', label: 'Pending', count: bookings.filter(b => b.status === 'pending').length }
+    { id: 'pending', label: 'Pending', count: bookings.filter(b => b.status === 'pending').length },
+    { id: 'cancelled', label: 'Cancelled', count: bookings.filter(b => b.status === 'cancelled').length }
   ];
 
   return (
@@ -139,7 +155,7 @@ const Bookings = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-3">
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-blue-600">{bookings.length}</p>
@@ -160,6 +176,14 @@ const Bookings = () => {
               {bookings.filter(b => b.paymentStatus === 'unpaid').length}
             </p>
             <p className="text-xs text-yellow-600">Unpaid</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-red-600">
+              {bookings.filter(b => b.status === 'cancelled').length}
+            </p>
+            <p className="text-xs text-red-600">Cancelled</p>
           </CardContent>
         </Card>
       </div>
@@ -207,7 +231,7 @@ const Bookings = () => {
                 <p className="text-sm text-gray-700">{booking.notes}</p>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-4 gap-2">
                 <EditBookingDialog
                   booking={booking}
                   onBookingUpdated={handleBookingUpdated}
@@ -238,6 +262,34 @@ const Bookings = () => {
                   <Receipt className="w-3 h-3" />
                   Invoice
                 </Button>
+
+                {booking.status !== 'cancelled' && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50">
+                        <X className="w-3 h-3" />
+                        Cancel
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to cancel this booking? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleCancelBooking(booking.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Cancel Booking
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             </CardContent>
           </Card>
