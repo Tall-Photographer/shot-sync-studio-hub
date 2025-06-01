@@ -8,6 +8,7 @@ export interface GeneralSettings {
   businessAddress: string;
   defaultTimeZone: string;
   defaultCurrency: string;
+  businessLogo?: string; // Base64 encoded image
 }
 
 export const useGeneralSettings = () => {

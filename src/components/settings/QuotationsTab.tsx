@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +44,7 @@ const QuotationsTab = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingQuotation, setEditingQuotation] = useState<Quotation | null>(null);
   const [viewingQuotation, setViewingQuotation] = useState<Quotation | null>(null);
+  const [documentType, setDocumentType] = useState<'quotation' | 'invoice'>('quotation');
   const { toast } = useToast();
 
   const generateQuotationNumber = () => {
@@ -128,11 +128,12 @@ The individual signing this contract is the authorized signatory for the Client.
   };
 
   const convertToInvoice = (quotation: Quotation) => {
-    // Here you could save to invoices array in localStorage
+    setViewingQuotation(quotation);
+    setDocumentType('invoice');
     console.log('Converting to invoice:', quotation);
     toast({
       title: "Success",
-      description: "Quotation converted to invoice"
+      description: "Viewing as invoice"
     });
   };
 
@@ -140,11 +141,14 @@ The individual signing this contract is the authorized signatory for the Client.
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => setViewingQuotation(null)}>
+          <Button variant="outline" onClick={() => {
+            setViewingQuotation(null);
+            setDocumentType('quotation');
+          }}>
             ← Back to Quotations
           </Button>
         </div>
-        <QuotationPDFViewer quotation={viewingQuotation} />
+        <QuotationPDFViewer quotation={viewingQuotation} documentType={documentType} />
       </div>
     );
   }

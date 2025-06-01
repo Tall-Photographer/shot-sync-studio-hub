@@ -5,37 +5,75 @@ import { Button } from '@/components/ui/button';
 import { Download, Share } from 'lucide-react';
 import { Quotation } from '../settings/QuotationsTab';
 import { useToast } from '@/hooks/use-toast';
+import { useGeneralSettings } from '@/hooks/useGeneralSettings';
 
 interface QuotationPDFViewerProps {
   quotation: Quotation;
+  documentType?: 'quotation' | 'invoice';
 }
 
-const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
+const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: QuotationPDFViewerProps) => {
   const { toast } = useToast();
+  const { generalSettings } = useGeneralSettings();
 
   const handleDownload = () => {
-    window.print();
+    // Hide everything except the quotation content
+    const originalTitle = document.title;
+    const printContents = document.querySelector('.quotation-content')?.innerHTML;
+    const originalContents = document.body.innerHTML;
+
+    if (printContents) {
+      // Set the filename in the document title
+      const prefix = documentType === 'invoice' ? 'I-' : 'Q-';
+      const filename = `${prefix}${quotation.quotationNumber}`;
+      document.title = filename;
+
+      // Replace body content with just the quotation
+      document.body.innerHTML = `
+        <div style="margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif;">
+          ${printContents}
+        </div>
+      `;
+
+      // Print
+      window.print();
+
+      // Restore original content and title
+      document.body.innerHTML = originalContents;
+      document.title = originalTitle;
+      
+      // Re-bind event listeners by triggering a page refresh
+      window.location.reload();
+    }
   };
 
   const handleShare = () => {
     if (navigator.share) {
+      const prefix = documentType === 'invoice' ? 'Invoice' : 'Quotation';
       navigator.share({
-        title: `Quotation ${quotation.quotationNumber}`,
-        text: `Quotation for ${quotation.billTo.name}`,
+        title: `${prefix} ${quotation.quotationNumber}`,
+        text: `${prefix} for ${quotation.billTo.name}`,
         url: window.location.href
+      }).catch(() => {
+        toast({
+          title: "Share Failed",
+          description: "Unable to share. Please try downloading instead."
+        });
       });
     } else {
       toast({
-        title: "Share Quotation",
-        description: "Use your browser's share or print function to share this quotation."
+        title: `Share ${documentType === 'invoice' ? 'Invoice' : 'Quotation'}`,
+        description: "Use your browser's share or print function to share this document."
       });
     }
   };
 
+  const documentTitle = documentType === 'invoice' ? 'Invoice' : 'Quotation';
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Quotation Preview</h2>
+        <h2 className="text-xl font-semibold">{documentTitle} Preview</h2>
         <div className="flex gap-2">
           <Button onClick={handleDownload} size="sm">
             <Download className="w-4 h-4 mr-2" />
@@ -49,7 +87,7 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
       </div>
 
       <Card className="print:shadow-none print:border-none">
-        <CardContent className="p-8 space-y-6 print:p-0">
+        <CardContent className="quotation-content p-8 space-y-6 print:p-0">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div className="space-y-1">
@@ -66,15 +104,23 @@ const QuotationPDFViewer = ({ quotation }: QuotationPDFViewerProps) => {
             </div>
             <div className="text-right">
               <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                <span className="text-xs text-gray-500">LOGO</span>
+                {generalSettings.businessLogo ? (
+                  <img 
+                    src={generalSettings.businessLogo} 
+                    alt="Business Logo" 
+                    className="w-full h-full object-contain rounded"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-500">LOGO</span>
+                )}
               </div>
               <div className="mt-2 text-xs text-gray-600">TallPhotographer</div>
             </div>
           </div>
 
-          {/* Quotation Title and Details */}
+          {/* Document Title and Details */}
           <div className="space-y-4">
-            <h2 className="text-4xl font-bold text-gray-900">QUOTATION</h2>
+            <h2 className="text-4xl font-bold text-gray-900">{documentTitle.toUpperCase()}</h2>
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-1 text-sm">
                 <div><strong>{quotation.quotationNumber}</strong></div>
