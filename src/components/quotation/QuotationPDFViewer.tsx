@@ -87,7 +87,7 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
       </div>
 
       <Card className="print:shadow-none print:border-none">
-        <CardContent className="quotation-content p-8 space-y-6 print:p-0">
+        <CardContent className="quotation-content p-6 space-y-4 print:p-0">
           {/* Header */}
           <div className="flex justify-between items-start">
             <div className="space-y-1">
@@ -103,25 +103,24 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
               </div>
             </div>
             <div className="text-right">
-              <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
-                {generalSettings.businessLogo ? (
-                  <img 
-                    src={generalSettings.businessLogo} 
-                    alt="Business Logo" 
-                    className="w-full h-full object-contain rounded"
-                  />
-                ) : (
+              {generalSettings.businessLogo ? (
+                <img 
+                  src={generalSettings.businessLogo} 
+                  alt="Business Logo" 
+                  className="max-w-[120px] max-h-[120px] object-contain"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
                   <span className="text-xs text-gray-500">LOGO</span>
-                )}
-              </div>
-              <div className="mt-2 text-xs text-gray-600">TallPhotographer</div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Document Title and Details */}
-          <div className="space-y-4">
-            <h2 className="text-4xl font-bold text-gray-900">{documentTitle.toUpperCase()}</h2>
-            <div className="grid grid-cols-2 gap-8">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-gray-900">{documentTitle.toUpperCase()}</h2>
+            <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1 text-sm">
                 <div><strong>{quotation.quotationNumber}</strong></div>
                 <div>ISSUE DATE: {quotation.issueDate}</div>
@@ -134,17 +133,17 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
           </div>
 
           {/* Services Table */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex justify-between text-lg font-semibold border-b pb-2">
               <span>DESCRIPTION</span>
               <span>PRICE</span>
             </div>
 
             {quotation.items.map((item, index) => (
-              <div key={item.id} className="space-y-4">
+              <div key={item.id} className="space-y-2">
                 <div className="font-semibold text-base">{item.description.toUpperCase()}</div>
                 {item.detailedDescription && (
-                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 ml-4">
+                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-0.5 ml-4">
                     {item.detailedDescription.split('\n').map((line, lineIndex) => (
                       <li key={lineIndex}>{line}</li>
                     ))}
@@ -159,7 +158,7 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
 
           {/* Deliverables */}
           {quotation.deliverables && (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <div className="font-semibold text-sm">DELIVERABLES:</div>
               <div className="text-sm text-gray-700 ml-4">
                 {quotation.deliverables.split('\n').map((line, index) => (
@@ -170,7 +169,7 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
           )}
 
           {/* Total */}
-          <div className="space-y-4 pt-6 border-t">
+          <div className="space-y-3 pt-4 border-t">
             <div className="flex justify-between text-2xl font-bold">
               <span>TOTAL</span>
               <span>{quotation.total.toLocaleString()} AED</span>
@@ -178,7 +177,7 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
 
             {/* Payment Terms */}
             {quotation.paymentTerms && (
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1 text-sm">
                 <div className="font-semibold">• PAYMENT TERMS</div>
                 {quotation.paymentTerms.split('\n').map((term, index) => (
                   <div key={index} className="ml-2">• {term}</div>
@@ -189,7 +188,7 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
 
           {/* Bank Details */}
           {quotation.bankDetails && (
-            <div className="text-center space-y-1 text-sm pt-6 border-t">
+            <div className="text-center space-y-0.5 text-sm pt-4 border-t">
               {quotation.bankDetails.split('\n').map((line, index) => {
                 if (line.includes(':')) {
                   const [label, value] = line.split(':');
@@ -206,11 +205,11 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
 
           {/* Terms and Conditions */}
           {quotation.termsAndConditions && (
-            <div className="text-xs text-gray-600 space-y-2 pt-6 border-t">
+            <div className="text-xs text-gray-600 space-y-1 pt-4 border-t">
               <div className="font-semibold">
                 {quotation.termsAndConditions.split('\n')[0]}
               </div>
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {quotation.termsAndConditions.split('\n').slice(1).map((term, index) => (
                   <li key={index}>• {term}</li>
                 ))}
