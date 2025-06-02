@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Camera, Calendar, DollarSign, Users, Bell, Plus, Receipt } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import NewBookingDialog from './NewBookingDialog';
 import AddExpenseDialog from './AddExpenseDialog';
 
 interface DashboardProps {
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: string, bookingId?: number) => void;
 }
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
@@ -61,9 +60,14 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     }
   };
 
+  const handleBookingClick = (bookingId: number) => {
+    if (onNavigate) {
+      onNavigate('bookings', bookingId);
+    }
+  };
+
   const handleNotificationClick = () => {
     console.log('Notification clicked - opening notifications');
-    // You can add notification functionality here
   };
 
   return (
@@ -179,7 +183,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             <div 
               key={booking.id} 
               className="bg-gray-50 rounded-lg p-3 sm:p-4 cursor-pointer hover:bg-gray-100 transition-colors active:scale-98 transform transition-transform"
-              onClick={() => handleStatCardClick('bookings')}
+              onClick={() => handleBookingClick(booking.id)}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate pr-2">

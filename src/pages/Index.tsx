@@ -10,13 +10,17 @@ import BottomNavigation from '@/components/BottomNavigation';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedBookingId, setSelectedBookingId] = useState<number | null>(null);
 
   const handleNavigateToFinancials = () => {
     setActiveTab('financials');
   };
 
-  const handleNavigate = (tab: string) => {
+  const handleNavigate = (tab: string, bookingId?: number) => {
     setActiveTab(tab);
+    if (bookingId) {
+      setSelectedBookingId(bookingId);
+    }
   };
 
   const renderContent = () => {
@@ -24,7 +28,7 @@ const Index = () => {
       case 'dashboard':
         return <Dashboard onNavigate={handleNavigate} />;
       case 'bookings':
-        return <Bookings />;
+        return <Bookings selectedBookingId={selectedBookingId} />;
       case 'calendar':
         return <Calendar />;
       case 'team':

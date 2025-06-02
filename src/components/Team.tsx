@@ -20,7 +20,6 @@ const Team = () => {
       status: 'active',
       activeBookings: 3,
       totalEarnings: '$8,450',
-      specialties: ['Wedding', 'Portrait'],
       joinDate: '2024-01-15'
     },
     {
@@ -32,7 +31,6 @@ const Team = () => {
       status: 'active',
       activeBookings: 2,
       totalEarnings: '$5,200',
-      specialties: ['Corporate', 'Headshots'],
       joinDate: '2024-03-20'
     },
     {
@@ -44,7 +42,6 @@ const Team = () => {
       status: 'busy',
       activeBookings: 5,
       totalEarnings: '$12,300',
-      specialties: ['Events', 'Corporate'],
       joinDate: '2023-08-10'
     }
   ]);
@@ -155,17 +152,6 @@ const Team = () => {
                     <p className="text-gray-600">Total Earnings</p>
                     <p className="font-semibold text-green-600">{member.totalEarnings}</p>
                   </div>
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <p className="text-sm text-gray-600 mb-2">Specialties:</p>
-                <div className="flex space-x-2">
-                  {member.specialties.map((specialty, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {specialty}
-                    </Badge>
-                  ))}
                 </div>
               </div>
 

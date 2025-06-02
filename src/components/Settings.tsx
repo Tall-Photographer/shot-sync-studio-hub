@@ -69,7 +69,7 @@ const Settings = ({ onNavigateToFinancials }: SettingsProps) => {
           </TabsList>
         </div>
 
-        <div className="pt-16 sm:pt-12">
+        <div className="pt-4 sm:pt-0">
           <TabsContent value="general" className="mt-0 focus-visible:outline-none">
             <GeneralTab />
           </TabsContent>

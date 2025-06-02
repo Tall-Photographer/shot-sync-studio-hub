@@ -104,14 +104,15 @@ const QuotationPDFViewer = ({ quotation, documentType = 'quotation' }: Quotation
             </div>
             <div className="text-right">
               {generalSettings.businessLogo ? (
-                <img 
-                  src={generalSettings.businessLogo} 
-                  alt="Business Logo" 
-                  className="object-contain"
-                  style={{ maxWidth: 'none', maxHeight: 'none' }}
-                />
+                <div className="w-20 h-16 flex items-center justify-center">
+                  <img 
+                    src={generalSettings.businessLogo} 
+                    alt="Business Logo" 
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
               ) : (
-                <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
+                <div className="w-20 h-16 bg-gray-200 rounded flex items-center justify-center">
                   <span style={{ fontSize: '6px' }} className="text-gray-500">LOGO</span>
                 </div>
               )}
