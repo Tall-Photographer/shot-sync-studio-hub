@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -139,7 +140,7 @@ The individual signing this contract is the authorized signatory for the Client.
 
   if (viewingQuotation) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => {
             setViewingQuotation(null);
@@ -155,7 +156,7 @@ The individual signing this contract is the authorized signatory for the Client.
 
   if (showForm) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             {editingQuotation ? 'Edit Quotation' : 'Create New Quotation'}
@@ -174,7 +175,7 @@ The individual signing this contract is the authorized signatory for the Client.
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Quotations</h2>
         <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -184,76 +185,80 @@ The individual signing this contract is the authorized signatory for the Client.
       </div>
 
       {quotations.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No quotations yet</h3>
-            <p className="text-gray-600 mb-4">Create your first quotation to get started</p>
-            <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Create First Quotation
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="flex justify-center">
+          <Card className="w-full max-w-md mx-auto">
+            <CardContent className="p-6 text-center">
+              <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No quotations yet</h3>
+              <p className="text-gray-600 mb-4">Create your first quotation to get started</p>
+              <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Quotation
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
-        <div className="grid gap-4">
-          {quotations.map((quotation) => (
-            <Card key={quotation.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{quotation.quotationNumber}</CardTitle>
-                    <p className="text-sm text-gray-600">
-                      {quotation.billTo.name} • {quotation.issueDate}
-                    </p>
+        <div className="flex justify-center">
+          <div className="w-full max-w-4xl mx-auto space-y-4">
+            {quotations.map((quotation) => (
+              <Card key={quotation.id} className="w-full">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{quotation.quotationNumber}</CardTitle>
+                      <p className="text-sm text-gray-600">
+                        {quotation.billTo.name} • {quotation.issueDate}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold">{quotation.total.toLocaleString()} AED</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold">{quotation.total.toLocaleString()} AED</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setViewingQuotation(quotation)}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingQuotation(quotation);
+                        setShowForm(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => convertToInvoice(quotation)}
+                      className="text-green-600 border-green-600 hover:bg-green-50"
+                    >
+                      Convert to Invoice
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteQuotation(quotation.id)}
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete
+                    </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setViewingQuotation(quotation)}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingQuotation(quotation);
-                      setShowForm(true);
-                    }}
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => convertToInvoice(quotation)}
-                    className="text-green-600 border-green-600 hover:bg-green-50"
-                  >
-                    Convert to Invoice
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteQuotation(quotation.id)}
-                    className="text-red-600 border-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </div>
