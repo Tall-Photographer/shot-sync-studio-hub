@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 
 interface EditTeamMemberDialogProps {
@@ -21,29 +20,12 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
     role: member.role || '',
     email: member.email || '',
     phone: member.phone || '',
-    status: member.status || 'active',
-    specialties: member.specialties || []
+    status: member.status || 'active'
   });
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
     setMemberData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const addSpecialty = (specialty: string) => {
-    if (specialty && !memberData.specialties.includes(specialty)) {
-      setMemberData(prev => ({
-        ...prev,
-        specialties: [...prev.specialties, specialty]
-      }));
-    }
-  };
-
-  const removeSpecialty = (specialty: string) => {
-    setMemberData(prev => ({
-      ...prev,
-      specialties: prev.specialties.filter(s => s !== specialty)
-    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -133,37 +115,6 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="busy">Busy</SelectItem>
                 <SelectItem value="offline">Offline</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Specialties</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {memberData.specialties.map((specialty, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  {specialty}
-                  <button
-                    type="button"
-                    onClick={() => removeSpecialty(specialty)}
-                    className="ml-2 text-red-500 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <Select onValueChange={addSpecialty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Add specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Wedding">Wedding</SelectItem>
-                <SelectItem value="Portrait">Portrait</SelectItem>
-                <SelectItem value="Corporate">Corporate</SelectItem>
-                <SelectItem value="Events">Events</SelectItem>
-                <SelectItem value="Headshots">Headshots</SelectItem>
-                <SelectItem value="Family">Family</SelectItem>
               </SelectContent>
             </Select>
           </div>
