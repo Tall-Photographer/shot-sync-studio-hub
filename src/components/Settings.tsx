@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Key, Shield, Bell, Palette, DollarSign, FileText } from 'lucide-react';
@@ -30,46 +29,39 @@ const Settings = ({ onNavigateToFinancials }: SettingsProps) => {
 
       <Tabs defaultValue="general" className="space-y-6">
         <div className="sticky top-0 bg-gray-50 z-10 pb-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-1 h-14 sm:h-12 p-1">
-            <TabsTrigger value="general" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-4 md:grid-cols-7 gap-0.5 h-auto p-1 bg-muted">
+            <TabsTrigger value="general" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation">
               <User className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">General</span>
-              <span className="sm:hidden">Gen</span>
+              <span className="text-[10px] sm:text-sm leading-tight">General</span>
             </TabsTrigger>
-            <TabsTrigger value="api" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="api" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation">
               <Key className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">API Keys</span>
-              <span className="sm:hidden">API</span>
+              <span className="text-[10px] sm:text-sm leading-tight">API</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="security" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation">
               <Shield className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">Security</span>
-              <span className="sm:hidden">Sec</span>
+              <span className="text-[10px] sm:text-sm leading-tight">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="notifications" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation">
               <Bell className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">Notifications</span>
-              <span className="sm:hidden">Not</span>
+              <span className="text-[10px] sm:text-sm leading-tight">Notify</span>
             </TabsTrigger>
-            <TabsTrigger value="appearance" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="appearance" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation md:col-start-5">
               <Palette className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">Appearance</span>
-              <span className="sm:hidden">App</span>
+              <span className="text-[10px] sm:text-sm leading-tight">Theme</span>
             </TabsTrigger>
-            <TabsTrigger value="finance" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="finance" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation md:col-start-6">
               <DollarSign className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">Finance</span>
-              <span className="sm:hidden">Fin</span>
+              <span className="text-[10px] sm:text-sm leading-tight">Finance</span>
             </TabsTrigger>
-            <TabsTrigger value="quotations" className="flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-4 py-3 sm:py-2 min-h-[48px] sm:min-h-[44px] touch-manipulation">
+            <TabsTrigger value="quotations" className="flex flex-col sm:flex-row items-center gap-1 text-xs sm:text-sm px-1 sm:px-3 py-2 sm:py-2 min-h-[60px] sm:min-h-[44px] touch-manipulation md:col-start-7">
               <FileText className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden sm:inline truncate">Quotations</span>
-              <span className="sm:hidden">Quo</span>
+              <span className="text-[10px] sm:text-sm leading-tight">Quotes</span>
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <div className="pt-8 sm:pt-0">
+        <div className="pt-12 sm:pt-4">
           <TabsContent value="general" className="mt-0 focus-visible:outline-none">
             <GeneralTab />
           </TabsContent>
