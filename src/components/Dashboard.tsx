@@ -210,34 +210,4 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   );
 };
 
-const handleBookingAdded = (newBooking: any) => {
-  console.log('New booking added to dashboard:', newBooking);
-};
-
-const handleExpenseAdded = (newExpense: any) => {
-  console.log('New expense added to dashboard:', newExpense);
-};
-
-const handleStatCardClick = (navigateTo: string) => {
-  if (onNavigate) {
-    onNavigate(navigateTo);
-  }
-};
-
-const handleSeeAllBookings = () => {
-  if (onNavigate) {
-    onNavigate('bookings');
-  }
-};
-
-const handleBookingClick = (bookingId: number) => {
-  if (onNavigate) {
-    onNavigate('bookings', bookingId);
-  }
-};
-
-const handleNotificationClick = () => {
-  console.log('Notification clicked - opening notifications');
-};
-
 export default Dashboard;
