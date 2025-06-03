@@ -199,7 +199,7 @@ const Financials = () => {
               <div>
                 <p className="text-sm text-green-600 font-medium">Revenue</p>
                 <p className="text-2xl font-bold text-green-700">
-                  ${financialData.monthlyRevenue.toLocaleString()}
+                  {financialData.monthlyRevenue.toLocaleString()} AED
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-500" />
@@ -214,7 +214,7 @@ const Financials = () => {
               <div>
                 <p className="text-sm text-red-600 font-medium">Expenses</p>
                 <p className="text-2xl font-bold text-red-700">
-                  ${financialData.monthlyExpenses.toLocaleString()}
+                  {financialData.monthlyExpenses.toLocaleString()} AED
                 </p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500" />
@@ -229,7 +229,7 @@ const Financials = () => {
               <div>
                 <p className="text-sm text-blue-600 font-medium">Net Profit</p>
                 <p className="text-2xl font-bold text-blue-700">
-                  ${financialData.netProfit.toLocaleString()}
+                  {financialData.netProfit.toLocaleString()} AED
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-500" />
@@ -244,7 +244,7 @@ const Financials = () => {
               <div>
                 <p className="text-sm text-yellow-600 font-medium">Pending</p>
                 <p className="text-2xl font-bold text-yellow-700">
-                  ${financialData.pendingPayments.toLocaleString()}
+                  {financialData.pendingPayments.toLocaleString()} AED
                 </p>
               </div>
               <Receipt className="w-8 h-8 text-yellow-500" />
@@ -293,7 +293,7 @@ const Financials = () => {
                 <p className={`font-bold ${
                   transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()}
+                  {transaction.amount > 0 ? '+' : ''}{Math.abs(transaction.amount).toLocaleString()} AED
                 </p>
                 <p className={`text-xs ${
                   transaction.status === 'completed' ? 'text-green-600' : 'text-yellow-600'

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Share } from 'lucide-react';
-import { Quotation } from '../settings/QuotationsTab';
+import { Quotation } from '@/types/quotation';
 import { useToast } from '@/hooks/use-toast';
 import { useGeneralSettings } from '@/hooks/useGeneralSettings';
 

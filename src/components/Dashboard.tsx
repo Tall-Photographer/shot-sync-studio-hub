@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Camera, Calendar, DollarSign, Users, Bell, Plus, Receipt } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +35,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   ];
 
   const stats = [
-    { title: 'This Month Revenue', value: 'AED 45,680', icon: DollarSign, color: 'text-green-600', navigateTo: 'financials' },
+    { title: 'This Month Revenue', value: '45,680 AED', icon: DollarSign, color: 'text-green-600', navigateTo: 'financials' },
     { title: 'Active Bookings', value: '8', icon: Calendar, color: 'text-blue-600', navigateTo: 'bookings' },
     { title: 'Total Clients', value: '34', icon: Users, color: 'text-purple-600', navigateTo: 'team' },
     { title: 'Pending Payments', value: '3', icon: Bell, color: 'text-orange-600', navigateTo: 'financials' }
@@ -207,6 +208,36 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
       </Card>
     </div>
   );
+};
+
+const handleBookingAdded = (newBooking: any) => {
+  console.log('New booking added to dashboard:', newBooking);
+};
+
+const handleExpenseAdded = (newExpense: any) => {
+  console.log('New expense added to dashboard:', newExpense);
+};
+
+const handleStatCardClick = (navigateTo: string) => {
+  if (onNavigate) {
+    onNavigate(navigateTo);
+  }
+};
+
+const handleSeeAllBookings = () => {
+  if (onNavigate) {
+    onNavigate('bookings');
+  }
+};
+
+const handleBookingClick = (bookingId: number) => {
+  if (onNavigate) {
+    onNavigate('bookings', bookingId);
+  }
+};
+
+const handleNotificationClick = () => {
+  console.log('Notification clicked - opening notifications');
 };
 
 export default Dashboard;
