@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EditBookingDialogProps {
@@ -19,7 +21,7 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
   const [bookingData, setBookingData] = useState({
     name: '',
     client: '',
-    service: '',
+    service: [] as string[],
     date: '',
     startTime: '',
     endTime: '',
@@ -30,16 +32,21 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     paymentStatus: 'unpaid',
     notes: ''
   });
+  const [showNewClientInput, setShowNewClientInput] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [showNewServiceInput, setShowNewServiceInput] = useState(false);
+  const [newServiceName, setNewServiceName] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (booking && open) {
       console.log('Loading booking data for edit:', booking);
       const assignedMembers = booking.assignedTo ? booking.assignedTo.split(', ') : [];
+      const services = booking.service ? booking.service.split(', ') : [];
       setBookingData({
         name: booking.name || '',
         client: booking.client || '',
-        service: booking.service || '',
+        service: services,
         date: booking.date || '',
         startTime: booking.time ? booking.time.split(' - ')[0] : '',
         endTime: booking.time ? booking.time.split(' - ')[1] : '',
@@ -61,6 +68,14 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     'Lisa Brown'
   ];
 
+  const [serviceTypes, setServiceTypes] = useState([
+    'Wedding Photography',
+    'Portrait Session',
+    'Family Photography',
+    'Corporate Photography',
+    'Event Photography'
+  ]);
+
   const teamMembers = [
     'Alex Thompson',
     'Emma Wilson', 
@@ -80,6 +95,31 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
     handleInputChange('assignedTo', updatedAssignments);
   };
 
+  const handleServiceToggle = (service: string, checked: boolean) => {
+    const updatedServices = checked 
+      ? [...bookingData.service, service]
+      : bookingData.service.filter(s => s !== service);
+    handleInputChange('service', updatedServices);
+  };
+
+  const handleAddNewClient = () => {
+    if (newClientName.trim()) {
+      handleInputChange('client', newClientName.trim());
+      setNewClientName('');
+      setShowNewClientInput(false);
+    }
+  };
+
+  const handleAddNewService = () => {
+    if (newServiceName.trim() && !serviceTypes.includes(newServiceName.trim())) {
+      const newService = newServiceName.trim();
+      setServiceTypes(prev => [...prev, newService]);
+      handleInputChange('service', [...bookingData.service, newService]);
+      setNewServiceName('');
+      setShowNewServiceInput(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Submitting booking update:', bookingData);
@@ -90,7 +130,8 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
       amount: bookingData.amount ? `AED ${bookingData.amount}` : 'AED 0',
       expenses: bookingData.expenses ? `AED ${bookingData.expenses}` : 'AED 0',
       time: `${bookingData.startTime} - ${bookingData.endTime}`,
-      assignedTo: bookingData.assignedTo.join(', ')
+      assignedTo: bookingData.assignedTo.join(', '),
+      service: bookingData.service.join(', ')
     };
 
     console.log('Updated booking:', updatedBooking);
@@ -127,32 +168,97 @@ const EditBookingDialog = ({ trigger, booking, onBookingUpdated }: EditBookingDi
 
           <div>
             <Label htmlFor="client">Client</Label>
-            <Select onValueChange={(value) => handleInputChange('client', value)} value={bookingData.client}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select client" />
-              </SelectTrigger>
-              <SelectContent>
-                {clients.map((client) => (
-                  <SelectItem key={client} value={client}>{client}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!showNewClientInput ? (
+              <div className="space-y-2">
+                <Select onValueChange={(value) => {
+                  if (value === 'new-client') {
+                    setShowNewClientInput(true);
+                  } else {
+                    handleInputChange('client', value);
+                  }
+                }} value={bookingData.client}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select client or create new" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client} value={client}>{client}</SelectItem>
+                    ))}
+                    <SelectItem value="new-client">
+                      <div className="flex items-center">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create New Client
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="flex space-x-2">
+                <Input
+                  value={newClientName}
+                  onChange={(e) => setNewClientName(e.target.value)}
+                  placeholder="Enter new client name"
+                  className="flex-1"
+                />
+                <Button type="button" onClick={handleAddNewClient} size="sm">
+                  Add
+                </Button>
+                <Button type="button" onClick={() => setShowNewClientInput(false)} variant="outline" size="sm">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           <div>
-            <Label htmlFor="service">Service Type</Label>
-            <Select onValueChange={(value) => handleInputChange('service', value)} value={bookingData.service}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select service type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Wedding Photography">Wedding Photography</SelectItem>
-                <SelectItem value="Portrait Session">Portrait Session</SelectItem>
-                <SelectItem value="Family Photography">Family Photography</SelectItem>
-                <SelectItem value="Corporate Photography">Corporate Photography</SelectItem>
-                <SelectItem value="Event Photography">Event Photography</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Service Types</Label>
+            <div className="space-y-2 mt-2 max-h-32 overflow-y-auto border rounded-md p-2">
+              {serviceTypes.map((service) => (
+                <div key={service} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={service}
+                    checked={bookingData.service.includes(service)}
+                    onCheckedChange={(checked) => handleServiceToggle(service, checked as boolean)}
+                  />
+                  <Label htmlFor={service} className="text-sm">{service}</Label>
+                </div>
+              ))}
+            </div>
+            
+            {!showNewServiceInput ? (
+              <Button
+                type="button"
+                onClick={() => setShowNewServiceInput(true)}
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Service Type
+              </Button>
+            ) : (
+              <div className="flex space-x-2 mt-2">
+                <Input
+                  value={newServiceName}
+                  onChange={(e) => setNewServiceName(e.target.value)}
+                  placeholder="Enter new service type"
+                  className="flex-1"
+                />
+                <Button type="button" onClick={handleAddNewService} size="sm">
+                  Add
+                </Button>
+                <Button type="button" onClick={() => setShowNewServiceInput(false)} variant="outline" size="sm">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+            
+            {bookingData.service.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-600">Selected: {bookingData.service.join(', ')}</p>
+              </div>
+            )}
           </div>
 
           <div>
