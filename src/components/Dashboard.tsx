@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import AddClientDialog from './AddClientDialog';
+import NewBookingDialog from './NewBookingDialog';
 
 interface DashboardProps {
   onNavigate: (tab: string, bookingId?: number) => void;
@@ -106,26 +108,28 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
-        <Button 
-          className="h-16 bg-blue-600 hover:bg-blue-700"
-          onClick={() => onNavigate('bookings')}
-        >
-          <div className="text-center">
-            <Calendar className="w-6 h-6 mx-auto mb-1" />
-            <span className="text-sm">New Booking</span>
-          </div>
-        </Button>
+        <NewBookingDialog
+          trigger={
+            <Button className="h-16 bg-blue-600 hover:bg-blue-700 w-full">
+              <div className="text-center">
+                <Calendar className="w-6 h-6 mx-auto mb-1" />
+                <span className="text-sm">New Booking</span>
+              </div>
+            </Button>
+          }
+          onBookingAdded={() => {}}
+        />
         
-        <Button 
-          variant="outline" 
-          className="h-16"
-          onClick={() => onNavigate('team')}
-        >
-          <div className="text-center">
-            <Users className="w-6 h-6 mx-auto mb-1" />
-            <span className="text-sm">Add Client</span>
-          </div>
-        </Button>
+        <AddClientDialog
+          trigger={
+            <Button variant="outline" className="h-16 w-full">
+              <div className="text-center">
+                <Users className="w-6 h-6 mx-auto mb-1" />
+                <span className="text-sm">Add Client</span>
+              </div>
+            </Button>
+          }
+        />
       </div>
 
       {isAdmin && (

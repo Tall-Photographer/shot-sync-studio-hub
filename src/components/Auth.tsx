@@ -151,14 +151,6 @@ const Auth = () => {
                   Sign In
                 </Button>
               </form>
-              
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700 font-medium">Admin Access:</p>
-                <p className="text-xs text-blue-600">
-                  Email: info@tallphotographer.com<br />
-                  Password: midotahn
-                </p>
-              </div>
             </TabsContent>
             
             <TabsContent value="signup">

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, Calendar, DollarSign, Eye, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,51 @@ import { Badge } from '@/components/ui/badge';
 import EditTeamMemberDialog from './EditTeamMemberDialog';
 import AddTeamMemberDialog from './AddTeamMemberDialog';
 import { useToast } from '@/hooks/use-toast';
-import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 const Team = () => {
   const { toast } = useToast();
-  const { teamMembers, loading, updateTeamMember } = useTeamMembers();
+  const [teamMembers, setTeamMembers] = useState([
+    {
+      id: 1,
+      name: 'Alex Thompson',
+      role: 'Senior Photographer',
+      email: 'alex@tallphotographer.com',
+      phone: '+971 50 123 4567',
+      status: 'active',
+      hourlyRate: 150,
+      totalEarnings: '$12,500',
+      activeBookings: 3,
+      joinDate: '2024-01-15'
+    },
+    {
+      id: 2,
+      name: 'Emma Wilson',
+      role: 'Portrait Specialist',
+      email: 'emma@tallphotographer.com',
+      phone: '+971 50 234 5678',
+      status: 'active',
+      hourlyRate: 125,
+      totalEarnings: '$8,200',
+      activeBookings: 2,
+      joinDate: '2024-03-01'
+    }
+  ]);
+
+  const handleMemberAdded = (newMember: any) => {
+    const memberWithInactiveStatus = {
+      ...newMember,
+      status: 'inactive',
+      totalEarnings: '$0',
+      activeBookings: 0
+    };
+    setTeamMembers(prev => [...prev, memberWithInactiveStatus]);
+  };
+
+  const handleMemberUpdated = (updatedMember: any) => {
+    setTeamMembers(prev => prev.map(member => 
+      member.id === updatedMember.id ? updatedMember : member
+    ));
+  };
 
   const handleViewSchedule = (member: any) => {
     console.log('Viewing schedule for:', member.name);
@@ -25,18 +65,11 @@ const Team = () => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'busy': return 'bg-yellow-100 text-yellow-800';
-      case 'offline': return 'bg-gray-100 text-gray-800';
+      case 'inactive': return 'bg-gray-100 text-gray-800';
+      case 'offline': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-
-  if (loading) {
-    return (
-      <div className="p-4 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="p-4 space-y-6">
@@ -50,6 +83,7 @@ const Team = () => {
               Add Member
             </Button>
           }
+          onMemberAdded={handleMemberAdded}
         />
       </div>
 
@@ -66,12 +100,14 @@ const Team = () => {
             <p className="text-lg font-bold text-green-600">
               {teamMembers.filter(m => m.status === 'active').length}
             </p>
-            <p className="text-xs text-green-600">Available</p>
+            <p className="text-xs text-green-600">Active</p>
           </CardContent>
         </Card>
         <Card className="bg-yellow-50 border-yellow-200">
           <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-yellow-600">0</p>
+            <p className="text-lg font-bold text-yellow-600">
+              {teamMembers.reduce((sum, member) => sum + member.activeBookings, 0)}
+            </p>
             <p className="text-xs text-yellow-600">Active Jobs</p>
           </CardContent>
         </Card>
@@ -95,9 +131,14 @@ const Team = () => {
                     <p className="text-xs text-gray-500">{member.email}</p>
                   </div>
                 </div>
-                <Badge className={getStatusColor(member.status)}>
-                  {member.status}
-                </Badge>
+                <div className="flex flex-col items-end space-y-1">
+                  <Badge className={getStatusColor(member.status)}>
+                    {member.status}
+                  </Badge>
+                  {member.status === 'inactive' && (
+                    <span className="text-xs text-gray-500">Pending invite</span>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-3">
@@ -105,15 +146,26 @@ const Team = () => {
                   <Calendar className="w-4 h-4 text-blue-500" />
                   <div>
                     <p className="text-gray-600">Hourly Rate</p>
-                    <p className="font-semibold">${member.hourly_rate || 0}/hr</p>
+                    <p className="font-semibold">${member.hourlyRate || 0}/hr</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <DollarSign className="w-4 h-4 text-green-500" />
                   <div>
                     <p className="text-gray-600">Total Earnings</p>
-                    <p className="font-semibold text-green-600">$0</p>
+                    <p className="font-semibold text-green-600">{member.totalEarnings}</p>
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
+                <div>
+                  <p className="text-gray-600">Active Bookings</p>
+                  <p className="font-semibold">{member.activeBookings}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Join Date</p>
+                  <p className="font-semibold">{member.joinDate}</p>
                 </div>
               </div>
 
@@ -124,13 +176,14 @@ const Team = () => {
                     variant="outline" 
                     className="flex-1"
                     onClick={() => handleViewSchedule(member)}
+                    disabled={member.status === 'inactive'}
                   >
                     <Eye className="w-3 h-3 mr-1" />
                     View Schedule
                   </Button>
                   <EditTeamMemberDialog
                     member={member}
-                    onMemberUpdated={(updatedMember) => updateTeamMember(member.id, updatedMember)}
+                    onMemberUpdated={handleMemberUpdated}
                     trigger={
                       <Button size="sm" variant="outline" className="flex-1">
                         Edit Profile

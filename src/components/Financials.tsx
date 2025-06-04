@@ -1,210 +1,122 @@
 
 import React, { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, DollarSign, Receipt, Filter } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import AddExpenseDialog from './AddExpenseDialog';
 
 const Financials = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [selectedPeriod, setSelectedPeriod] = useState('2025-05');
-  const [selectedTeamMember, setSelectedTeamMember] = useState('all');
-  const [selectedClient, setSelectedClient] = useState('all');
-  const { toast } = useToast();
-
-  const financialData = {
-    monthlyRevenue: 12450,
-    monthlyExpenses: 3200,
-    netProfit: 9250,
-    pendingPayments: 2800,
-    paidInvoices: 8,
-    unpaidInvoices: 3
-  };
-
-  const allTransactions = [
+  const [financialRecords, setFinancialRecords] = useState([
     {
       id: 1,
       type: 'income',
-      description: 'Wedding Photography - Sarah Johnson',
-      amount: 2500,
-      date: '2025-05-25',
-      status: 'completed',
-      teamMember: 'Alex Thompson',
-      client: 'Sarah Johnson'
+      description: 'Sarah & John Wedding Payment',
+      amount: 'AED 9,200',
+      date: '2025-05-30',
+      category: 'Wedding Photography',
+      relatedBooking: 'Sarah & John Wedding',
+      status: 'completed'
     },
     {
       id: 2,
       type: 'expense',
       description: 'Camera Equipment Rental',
-      amount: -450,
-      date: '2025-05-24',
-      status: 'completed',
-      teamMember: 'Alex Thompson',
-      client: null
+      amount: 'AED 850',
+      date: '2025-05-28',
+      category: 'Equipment Rental',
+      relatedBooking: 'Sarah & John Wedding',
+      status: 'completed'
     },
     {
       id: 3,
       type: 'income',
-      description: 'Corporate Headshots - TechCorp',
-      amount: 1200,
-      date: '2025-05-23',
-      status: 'pending',
-      teamMember: 'Emma Wilson',
-      client: 'Mike Davis'
-    },
-    {
-      id: 4,
-      type: 'expense',
-      description: 'Studio Rent',
-      amount: -800,
-      date: '2025-05-20',
-      status: 'completed',
-      teamMember: null,
-      client: null
-    },
-    {
-      id: 5,
-      type: 'income',
-      description: 'Family Photography Session',
-      amount: 800,
-      date: '2025-05-22',
-      status: 'completed',
-      teamMember: 'James Rodriguez',
-      client: 'Emma Wilson'
+      description: 'Corporate Headshots',
+      amount: 'AED 2,390',
+      date: '2025-06-02',
+      category: 'Portrait Session',
+      relatedBooking: 'Corporate Headshots',
+      status: 'pending'
     }
-  ];
+  ]);
 
-  const teamMembers = ['Alex Thompson', 'Emma Wilson', 'James Rodriguez'];
-  const clients = ['Sarah Johnson', 'Mike Davis', 'Emma Wilson'];
-
-  const handleAddTransaction = () => {
-    console.log('Adding new transaction');
-    toast({
-      title: "Add Transaction",
-      description: "Opening transaction form"
-    });
+  const handleExpenseAdded = (newExpense: any) => {
+    setFinancialRecords(prev => [newExpense, ...prev]);
   };
 
-  const handleExportData = () => {
-    console.log('Exporting financial data');
-    toast({
-      title: "Export Started",
-      description: "Financial data export in progress"
-    });
+  const handleIncomeAdded = (newIncome: any) => {
+    const incomeRecord = {
+      ...newIncome,
+      type: 'income'
+    };
+    setFinancialRecords(prev => [incomeRecord, ...prev]);
   };
 
-  // Filter transactions based on selected filters and active tab
-  const filteredTransactions = allTransactions.filter(transaction => {
-    if (activeTab === 'income' && transaction.type !== 'income') return false;
-    if (activeTab === 'expenses' && transaction.type !== 'expense') return false;
-    if (selectedTeamMember !== 'all' && transaction.teamMember !== selectedTeamMember) return false;
-    if (selectedClient !== 'all' && transaction.client !== selectedClient) return false;
-    return true;
-  });
+  const totalIncome = financialRecords
+    .filter(record => record.type === 'income')
+    .reduce((sum, record) => {
+      const amount = parseFloat(record.amount.replace('AED ', '').replace(',', ''));
+      return sum + amount;
+    }, 0);
 
-  const tabs = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'income', label: 'Income' },
-    { id: 'expenses', label: 'Expenses' }
-  ];
+  const totalExpenses = financialRecords
+    .filter(record => record.type === 'expense')
+    .reduce((sum, record) => {
+      const amount = parseFloat(record.amount.replace('AED ', '').replace(',', ''));
+      return sum + amount;
+    }, 0);
+
+  const netProfit = totalIncome - totalExpenses;
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'income': return 'bg-green-100 text-green-800';
+      case 'expense': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
-      <div className="pt-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Financials</h1>
+      <div className="flex items-center justify-between pt-4">
+        <h1 className="text-2xl font-bold text-gray-900">Financials</h1>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleExportData}>
-            Export
-          </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleAddTransaction}>
+          <AddExpenseDialog
+            trigger={
+              <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Expense
+              </Button>
+            }
+            onExpenseAdded={handleExpenseAdded}
+          />
+          <Button className="bg-green-600 hover:bg-green-700">
             <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
+            Add Income
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Period</label>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all-time">All Time</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2023">2023</SelectItem>
-              <SelectItem value="2025-05">May 2025</SelectItem>
-              <SelectItem value="2025-04">April 2025</SelectItem>
-              <SelectItem value="2025-03">March 2025</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Team Member</label>
-          <Select value={selectedTeamMember} onValueChange={setSelectedTeamMember}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Members</SelectItem>
-              {teamMembers.map(member => (
-                <SelectItem key={member} value={member}>{member}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700 mb-1 block">Client</label>
-          <Select value={selectedClient} onValueChange={setSelectedClient}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
-              {clients.map(client => (
-                <SelectItem key={client} value={client}>{client}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Financial Overview Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Financial Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 font-medium">Revenue</p>
-                <p className="text-2xl font-bold text-green-700">
-                  {financialData.monthlyRevenue.toLocaleString()} AED
-                </p>
+                <p className="text-sm text-green-600">Total Income</p>
+                <p className="text-2xl font-bold text-green-700">AED {totalIncome.toLocaleString()}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
-            <p className="text-xs text-green-600 mt-2">+12% from last month</p>
           </CardContent>
         </Card>
 
@@ -212,97 +124,71 @@ const Financials = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600 font-medium">Expenses</p>
-                <p className="text-2xl font-bold text-red-700">
-                  {financialData.monthlyExpenses.toLocaleString()} AED
-                </p>
+                <p className="text-sm text-red-600">Total Expenses</p>
+                <p className="text-2xl font-bold text-red-700">AED {totalExpenses.toLocaleString()}</p>
               </div>
-              <TrendingDown className="w-8 h-8 text-red-500" />
+              <TrendingDown className="w-8 h-8 text-red-600" />
             </div>
-            <p className="text-xs text-red-600 mt-2">-5% from last month</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className={`border-2 ${netProfit >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium">Net Profit</p>
-                <p className="text-2xl font-bold text-blue-700">
-                  {financialData.netProfit.toLocaleString()} AED
+                <p className={`text-sm ${netProfit >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>Net Profit</p>
+                <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                  AED {netProfit.toLocaleString()}
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-blue-500" />
+              <DollarSign className={`w-8 h-8 ${netProfit >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
             </div>
-            <p className="text-xs text-blue-600 mt-2">+18% from last month</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-yellow-600 font-medium">Pending</p>
-                <p className="text-2xl font-bold text-yellow-700">
-                  {financialData.pendingPayments.toLocaleString()} AED
-                </p>
-              </div>
-              <Receipt className="w-8 h-8 text-yellow-500" />
-            </div>
-            <p className="text-xs text-yellow-600 mt-2">{financialData.unpaidInvoices} unpaid invoices</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Transactions */}
-      <Card className="bg-white shadow-sm border-0">
+      {/* Financial Records */}
+      <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center justify-between">
-            {activeTab === 'overview' ? 'Recent Transactions' : 
-             activeTab === 'income' ? 'Income Transactions' : 'Expense Transactions'}
-            <span className="text-sm font-normal text-gray-500">
-              ({filteredTransactions.length} transactions)
-            </span>
-          </CardTitle>
+          <CardTitle>Recent Transactions</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {filteredTransactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  transaction.type === 'income' 
-                    ? 'bg-green-100' 
-                    : 'bg-red-100'
-                }`}>
-                  {transaction.type === 'income' ? (
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{transaction.description}</p>
-                  <div className="text-sm text-gray-600">
-                    <p>{transaction.date}</p>
-                    {transaction.teamMember && <p>👤 {transaction.teamMember}</p>}
-                    {transaction.client && <p>🏢 {transaction.client}</p>}
+        <CardContent>
+          <div className="space-y-4">
+            {financialRecords.map((record) => (
+              <div key={record.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium text-gray-900">{record.description}</h4>
+                    <Badge className={getTypeColor(record.type)}>
+                      {record.type}
+                    </Badge>
+                    <Badge className={getStatusColor(record.status)}>
+                      {record.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {record.date}
+                    </span>
+                    {record.category && (
+                      <span>Category: {record.category}</span>
+                    )}
+                    {record.relatedBooking && (
+                      <span>Booking: {record.relatedBooking}</span>
+                    )}
                   </div>
                 </div>
+                <div className="text-right">
+                  <p className={`text-lg font-semibold ${
+                    record.type === 'income' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {record.type === 'expense' ? '-' : '+'}{record.amount}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className={`font-bold ${
-                  transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {transaction.amount > 0 ? '+' : ''}{Math.abs(transaction.amount).toLocaleString()} AED
-                </p>
-                <p className={`text-xs ${
-                  transaction.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
-                }`}>
-                  {transaction.status}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

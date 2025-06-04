@@ -12,9 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface BookingsProps {
   selectedBookingId?: number | null;
+  onBookingUpdated?: (booking: any) => void;
+  onBookingCancelled?: (bookingId: number) => void;
 }
 
-const Bookings = ({ selectedBookingId }: BookingsProps) => {
+const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: BookingsProps) => {
   const [activeTab, setActiveTab] = useState('all');
   const { toast } = useToast();
 
@@ -86,6 +88,14 @@ const Bookings = ({ selectedBookingId }: BookingsProps) => {
     setBookings(prev => prev.map(booking => 
       booking.id === updatedBooking.id ? updatedBooking : booking
     ));
+    
+    // Notify parent component about the update
+    onBookingUpdated?.(updatedBooking);
+    
+    toast({
+      title: "Booking Updated",
+      description: "The booking has been successfully updated",
+    });
   };
 
   const handleCancelBooking = (bookingId: number) => {
@@ -94,6 +104,9 @@ const Bookings = ({ selectedBookingId }: BookingsProps) => {
         ? { ...booking, status: 'cancelled' }
         : booking
     ));
+    
+    // Notify parent component about the cancellation
+    onBookingCancelled?.(bookingId);
     
     toast({
       title: "Booking Cancelled",

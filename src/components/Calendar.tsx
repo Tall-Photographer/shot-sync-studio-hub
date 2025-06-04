@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import NewBookingDialog from './NewBookingDialog';
 import EditBookingDialog from './EditBookingDialog';
 
-const Calendar = () => {
+interface CalendarProps {
+  updatedBooking?: any;
+  cancelledBookingId?: number;
+}
+
+const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('month');
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -54,6 +58,25 @@ const Calendar = () => {
     }
   ]);
 
+  // Update bookings when changes come from other components
+  useEffect(() => {
+    if (updatedBooking) {
+      setBookings(prev => prev.map(booking => 
+        booking.id === updatedBooking.id ? updatedBooking : booking
+      ));
+    }
+  }, [updatedBooking]);
+
+  useEffect(() => {
+    if (cancelledBookingId) {
+      setBookings(prev => prev.map(booking => 
+        booking.id === cancelledBookingId 
+          ? { ...booking, status: 'cancelled' }
+          : booking
+      ));
+    }
+  }, [cancelledBookingId]);
+
   const handleBookingAdded = (newBooking: any) => {
     setBookings(prev => [...prev, newBooking]);
   };
@@ -99,7 +122,7 @@ const Calendar = () => {
   };
 
   const getBookingsForDate = (date: string) => {
-    return bookings.filter(booking => booking.date === date);
+    return bookings.filter(booking => booking.date === date && booking.status !== 'cancelled');
   };
 
   const getStatusColor = (status: string) => {

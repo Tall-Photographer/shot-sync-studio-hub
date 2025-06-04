@@ -8,23 +8,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 
 interface EditTeamMemberDialogProps {
-  trigger: React.ReactNode;
   member: any;
+  trigger: React.ReactNode;
   onMemberUpdated?: (member: any) => void;
 }
 
-const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemberDialogProps) => {
+const EditTeamMemberDialog = ({ member, trigger, onMemberUpdated }: EditTeamMemberDialogProps) => {
   const [open, setOpen] = useState(false);
   const [memberData, setMemberData] = useState({
-    name: member.name || '',
-    role: member.role || '',
-    email: member.email || '',
-    phone: member.phone || '',
-    status: member.status || 'active'
+    name: member.name,
+    role: member.role,
+    email: member.email,
+    phone: member.phone,
+    hourlyRate: member.hourlyRate || 0,
+    status: member.status
   });
   const { toast } = useToast();
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setMemberData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -39,8 +40,8 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
     console.log('Updating team member:', updatedMember);
     
     toast({
-      title: "Profile Updated",
-      description: "Team member profile has been updated successfully"
+      title: "Member Updated",
+      description: `${memberData.name}'s profile has been updated`
     });
 
     onMemberUpdated?.(updatedMember);
@@ -52,7 +53,7 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle>Edit Team Member</DialogTitle>
         </DialogHeader>
@@ -66,21 +67,6 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
               onChange={(e) => handleInputChange('name', e.target.value)}
               required
             />
-          </div>
-
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Select onValueChange={(value) => handleInputChange('role', value)} value={memberData.role}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Senior Photographer">Senior Photographer</SelectItem>
-                <SelectItem value="Portrait Specialist">Portrait Specialist</SelectItem>
-                <SelectItem value="Event Photographer">Event Photographer</SelectItem>
-                <SelectItem value="Assistant">Assistant</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div>
@@ -106,6 +92,31 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
           </div>
 
           <div>
+            <Label htmlFor="role">Role</Label>
+            <Select onValueChange={(value) => handleInputChange('role', value)} value={memberData.role}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Senior Photographer">Senior Photographer</SelectItem>
+                <SelectItem value="Portrait Specialist">Portrait Specialist</SelectItem>
+                <SelectItem value="Event Photographer">Event Photographer</SelectItem>
+                <SelectItem value="Assistant">Assistant</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
+            <Input
+              id="hourlyRate"
+              type="number"
+              value={memberData.hourlyRate}
+              onChange={(e) => handleInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
+            />
+          </div>
+
+          <div>
             <Label htmlFor="status">Status</Label>
             <Select onValueChange={(value) => handleInputChange('status', value)} value={memberData.status}>
               <SelectTrigger>
@@ -113,6 +124,7 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="busy">Busy</SelectItem>
                 <SelectItem value="offline">Offline</SelectItem>
               </SelectContent>
@@ -124,7 +136,7 @@ const EditTeamMemberDialog = ({ trigger, member, onMemberUpdated }: EditTeamMemb
               Cancel
             </Button>
             <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
-              Update Profile
+              Update Member
             </Button>
           </div>
         </form>
