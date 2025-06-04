@@ -9,7 +9,262 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          amount: number | null
+          assigned_team_member_ids: string[] | null
+          client_id: string | null
+          created_at: string | null
+          date: string | null
+          end_time: string | null
+          expenses: number | null
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          payment_status: string | null
+          service_ids: string[] | null
+          start_time: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          assigned_team_member_ids?: string[] | null
+          client_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          end_time?: string | null
+          expenses?: number | null
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          payment_status?: string | null
+          service_ids?: string[] | null
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          assigned_team_member_ids?: string[] | null
+          client_id?: string | null
+          created_at?: string | null
+          date?: string | null
+          end_time?: string | null
+          expenses?: number | null
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          payment_status?: string | null
+          service_ids?: string[] | null
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          last_booked: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          total_bookings: number | null
+          total_spent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_booked?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          total_bookings?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          last_booked?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          total_bookings?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_records: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          category: string | null
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          category?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          base_price: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          base_price?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          hourly_rate: number | null
+          id: string
+          name: string
+          phone: string | null
+          role: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

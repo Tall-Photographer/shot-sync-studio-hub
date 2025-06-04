@@ -1,60 +1,17 @@
 
-import React, { useState } from 'react';
-import { Plus, Calendar, DollarSign, Eye } from 'lucide-react';
+import React from 'react';
+import { Plus, Calendar, DollarSign, Eye, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import EditTeamMemberDialog from './EditTeamMemberDialog';
 import AddTeamMemberDialog from './AddTeamMemberDialog';
 import { useToast } from '@/hooks/use-toast';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 const Team = () => {
   const { toast } = useToast();
-  const [teamMembers, setTeamMembers] = useState([
-    {
-      id: 1,
-      name: 'Alex Thompson',
-      role: 'Senior Photographer',
-      email: 'alex.thompson@studio.com',
-      phone: '+1 (555) 234-5678',
-      status: 'active',
-      activeBookings: 3,
-      totalEarnings: '$8,450',
-      joinDate: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Emma Wilson',
-      role: 'Portrait Specialist',
-      email: 'emma.wilson@studio.com',
-      phone: '+1 (555) 345-6789',
-      status: 'active',
-      activeBookings: 2,
-      totalEarnings: '$5,200',
-      joinDate: '2024-03-20'
-    },
-    {
-      id: 3,
-      name: 'James Rodriguez',
-      role: 'Event Photographer',
-      email: 'james.rodriguez@studio.com',
-      phone: '+1 (555) 456-7890',
-      status: 'busy',
-      activeBookings: 5,
-      totalEarnings: '$12,300',
-      joinDate: '2023-08-10'
-    }
-  ]);
-
-  const handleMemberAdded = (newMember: any) => {
-    setTeamMembers(prev => [...prev, newMember]);
-  };
-
-  const handleMemberUpdated = (updatedMember: any) => {
-    setTeamMembers(prev => prev.map(member => 
-      member.id === updatedMember.id ? updatedMember : member
-    ));
-  };
+  const { teamMembers, loading, updateTeamMember } = useTeamMembers();
 
   const handleViewSchedule = (member: any) => {
     console.log('Viewing schedule for:', member.name);
@@ -73,6 +30,14 @@ const Team = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
@@ -85,7 +50,6 @@ const Team = () => {
               Add Member
             </Button>
           }
-          onMemberAdded={handleMemberAdded}
         />
       </div>
 
@@ -107,9 +71,7 @@ const Team = () => {
         </Card>
         <Card className="bg-yellow-50 border-yellow-200">
           <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-yellow-600">
-              {teamMembers.reduce((sum, member) => sum + member.activeBookings, 0)}
-            </p>
+            <p className="text-lg font-bold text-yellow-600">0</p>
             <p className="text-xs text-yellow-600">Active Jobs</p>
           </CardContent>
         </Card>
@@ -142,23 +104,20 @@ const Team = () => {
                 <div className="flex items-center space-x-2 text-sm">
                   <Calendar className="w-4 h-4 text-blue-500" />
                   <div>
-                    <p className="text-gray-600">Active Bookings</p>
-                    <p className="font-semibold">{member.activeBookings}</p>
+                    <p className="text-gray-600">Hourly Rate</p>
+                    <p className="font-semibold">${member.hourly_rate || 0}/hr</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <DollarSign className="w-4 h-4 text-green-500" />
                   <div>
                     <p className="text-gray-600">Total Earnings</p>
-                    <p className="font-semibold text-green-600">{member.totalEarnings}</p>
+                    <p className="font-semibold text-green-600">$0</p>
                   </div>
                 </div>
               </div>
 
               <div className="pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-2">
-                  Joined: {new Date(member.joinDate).toLocaleDateString()}
-                </p>
                 <div className="flex space-x-2">
                   <Button 
                     size="sm" 
@@ -171,7 +130,7 @@ const Team = () => {
                   </Button>
                   <EditTeamMemberDialog
                     member={member}
-                    onMemberUpdated={handleMemberUpdated}
+                    onMemberUpdated={(updatedMember) => updateTeamMember(member.id, updatedMember)}
                     trigger={
                       <Button size="sm" variant="outline" className="flex-1">
                         Edit Profile

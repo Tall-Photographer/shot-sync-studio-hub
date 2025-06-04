@@ -1,60 +1,42 @@
 
 import React, { useState } from 'react';
-import { Search, Plus, Mail, Calendar } from 'lucide-react';
+import { Search, Plus, Mail, Calendar, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useClients } from '@/hooks/useClients';
+import AddClientDialog from './AddClientDialog';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
-
-  const clients = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      phone: '+1 (555) 123-4567',
-      email: 'sarah.johnson@email.com',
-      totalBookings: 3,
-      totalSpent: '$2,450',
-      lastBooked: '2025-05-15',
-      notes: 'Prefers outdoor shoots, allergic to cats'
-    },
-    {
-      id: 2,
-      name: 'Mike Davis',
-      phone: '+1 (555) 987-6543',
-      email: 'mike.davis@email.com',
-      totalBookings: 1,
-      totalSpent: '$650',
-      lastBooked: '2025-04-22',
-      notes: 'Corporate headshots specialist'
-    },
-    {
-      id: 3,
-      name: 'Emma Wilson',
-      phone: '+1 (555) 456-7890',
-      email: 'emma.wilson@email.com',
-      totalBookings: 5,
-      totalSpent: '$4,200',
-      lastBooked: '2025-05-20',
-      notes: 'Regular client, family photography'
-    }
-  ];
+  const { clients, loading } = useClients();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="p-4 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between pt-4">
         <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Client
-        </Button>
+        <AddClientDialog
+          trigger={
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Client
+            </Button>
+          }
+        />
       </div>
 
       {/* Search */}
@@ -79,7 +61,7 @@ const Clients = () => {
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600">
-              ${clients.reduce((sum, client) => sum + parseInt(client.totalSpent.replace('$', '').replace(',', '')), 0).toLocaleString()}
+              ${clients.reduce((sum, client) => sum + (client.total_spent || 0), 0).toLocaleString()}
             </p>
             <p className="text-sm text-green-600">Total Revenue</p>
           </CardContent>
@@ -116,16 +98,18 @@ const Clients = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-600">Total Bookings</p>
-                  <p className="font-semibold">{client.totalBookings}</p>
+                  <p className="font-semibold">{client.total_bookings}</p>
                 </div>
                 <div>
                   <p className="text-gray-600">Total Spent</p>
-                  <p className="font-semibold text-green-600">{client.totalSpent}</p>
+                  <p className="font-semibold text-green-600">${client.total_spent}</p>
                 </div>
               </div>
 
               <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Last booked: {client.lastBooked}</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  Last booked: {client.last_booked || 'Never'}
+                </p>
                 <p className="text-sm text-gray-700">{client.notes}</p>
               </div>
             </CardContent>
