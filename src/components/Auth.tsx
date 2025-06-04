@@ -16,11 +16,21 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const { toast } = useToast();
 
+  const cleanupAuthState = () => {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      cleanupAuthState();
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -41,8 +51,11 @@ const Auth = () => {
       } else {
         toast({
           title: "Success",
-          description: "Check your email for the confirmation link!"
+          description: "Account created successfully! You can now sign in."
         });
+        // Switch to sign in tab
+        const signInTab = document.querySelector('[value="signin"]') as HTMLElement;
+        if (signInTab) signInTab.click();
       }
     } catch (error) {
       toast({
@@ -60,6 +73,14 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      cleanupAuthState();
+      
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -76,6 +97,8 @@ const Auth = () => {
           title: "Success",
           description: "Welcome back!"
         });
+        // Force page reload for clean state
+        window.location.href = '/';
       }
     } catch (error) {
       toast({
@@ -128,6 +151,14 @@ const Auth = () => {
                   Sign In
                 </Button>
               </form>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">Admin Access:</p>
+                <p className="text-xs text-blue-600">
+                  Email: info@tallphotographer.com<br />
+                  Password: midotahn
+                </p>
+              </div>
             </TabsContent>
             
             <TabsContent value="signup">
@@ -160,6 +191,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

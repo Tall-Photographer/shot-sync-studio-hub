@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Calendar, Users, DollarSign, Camera, LogOut } from 'lucide-react';
+import { Calendar, Users, DollarSign, Camera, LogOut, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface DashboardProps {
   onNavigate: (tab: string, bookingId?: number) => void;
@@ -11,13 +13,22 @@ interface DashboardProps {
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { signOut, user } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole();
 
   return (
     <div className="p-4 space-y-6">
       {/* Header with Logout */}
       <div className="flex items-center justify-between pt-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            {!roleLoading && isAdmin && (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <Shield className="w-3 h-3" />
+                Admin
+              </Badge>
+            )}
+          </div>
           <p className="text-gray-600">Welcome back, {user?.email}</p>
         </div>
         <Button variant="outline" onClick={signOut} className="flex items-center gap-2">
@@ -116,6 +127,38 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </div>
         </Button>
       </div>
+
+      {isAdmin && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-5 h-5 text-red-600" />
+              <h3 className="font-semibold text-red-900">Admin Panel</h3>
+            </div>
+            <p className="text-sm text-red-700 mb-3">
+              You have admin access to all data, users, bookings, and settings.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="border-red-300 text-red-700 hover:bg-red-100"
+                onClick={() => onNavigate('settings')}
+              >
+                Admin Settings
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="border-red-300 text-red-700 hover:bg-red-100"
+                onClick={() => onNavigate('financials')}
+              >
+                All Financials
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
