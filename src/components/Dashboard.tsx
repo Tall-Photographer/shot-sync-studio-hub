@@ -1,10 +1,15 @@
+
 import React from 'react';
 import { Calendar, Users, DollarSign, Camera, LogOut } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
-const Dashboard = () => {
+interface DashboardProps {
+  onNavigate: (tab: string, bookingId?: number) => void;
+}
+
+const Dashboard = ({ onNavigate }: DashboardProps) => {
   const { signOut, user } = useAuth();
 
   return (
@@ -90,14 +95,21 @@ const Dashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
-        <Button className="h-16 bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="h-16 bg-blue-600 hover:bg-blue-700"
+          onClick={() => onNavigate('bookings')}
+        >
           <div className="text-center">
             <Calendar className="w-6 h-6 mx-auto mb-1" />
             <span className="text-sm">New Booking</span>
           </div>
         </Button>
         
-        <Button variant="outline" className="h-16">
+        <Button 
+          variant="outline" 
+          className="h-16"
+          onClick={() => onNavigate('team')}
+        >
           <div className="text-center">
             <Users className="w-6 h-6 mx-auto mb-1" />
             <span className="text-sm">Add Client</span>
