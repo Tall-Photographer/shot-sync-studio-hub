@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, User, MapPin, DollarSign, FileText, Edit, Receipt, X } from 'lucide-react';
+import { Plus, Calendar, User, MapPin, DollarSign, FileText, Edit, Receipt, X, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import QuotationDialog from './QuotationDialog';
 import NewBookingDialog from './NewBookingDialog';
 import EditBookingDialog from './EditBookingDialog';
+import BookingFilters from './BookingFilters';
 import { useBookings } from '@/hooks/useBookings';
 import { useClients } from '@/hooks/useClients';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
@@ -21,7 +22,7 @@ interface BookingsProps {
 
 const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: BookingsProps) => {
   const [activeTab, setActiveTab] = useState('all');
-  const { bookings, loading, updateBooking } = useBookings();
+  const { bookings, allBookings, loading, updateBooking, filters, applyFilters, clearFilters } = useBookings();
   const { clients } = useClients();
   const { teamMembers } = useTeamMembers();
   const { toast } = useToast();
@@ -57,6 +58,14 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
     });
   };
 
+  const handleCompleteBooking = async (bookingId: string) => {
+    await updateBooking(bookingId, { status: 'completed' });
+    toast({
+      title: "Booking Completed",
+      description: "The booking has been marked as completed",
+    });
+  };
+
   const handleCreateInvoice = (booking: any) => {
     console.log('Creating invoice for booking:', booking);
     toast({
@@ -68,6 +77,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -101,10 +111,11 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
   });
 
   const tabs = [
-    { id: 'all', label: 'All Bookings', count: bookings.length },
-    { id: 'confirmed', label: 'Confirmed', count: bookings.filter(b => b.status === 'confirmed').length },
-    { id: 'pending', label: 'Pending', count: bookings.filter(b => b.status === 'pending').length },
-    { id: 'cancelled', label: 'Cancelled', count: bookings.filter(b => b.status === 'cancelled').length }
+    { id: 'all', label: 'All Bookings', count: allBookings.length },
+    { id: 'confirmed', label: 'Confirmed', count: allBookings.filter(b => b.status === 'confirmed').length },
+    { id: 'completed', label: 'Completed', count: allBookings.filter(b => b.status === 'completed').length },
+    { id: 'pending', label: 'Pending', count: allBookings.filter(b => b.status === 'pending').length },
+    { id: 'cancelled', label: 'Cancelled', count: allBookings.filter(b => b.status === 'cancelled').length }
   ];
 
   if (loading) {
@@ -133,6 +144,13 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
         />
       </div>
 
+      {/* Filters */}
+      <BookingFilters
+        filters={filters}
+        onFiltersChange={applyFilters}
+        onClearFilters={clearFilters}
+      />
+
       {/* Tabs */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
         {tabs.map((tab) => (
@@ -151,25 +169,33 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-blue-600">{bookings.length}</p>
+            <p className="text-lg font-bold text-blue-600">{allBookings.length}</p>
             <p className="text-xs text-blue-600">Total</p>
           </CardContent>
         </Card>
         <Card className="bg-green-50 border-green-200">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-green-600">
-              {bookings.filter(b => b.status === 'confirmed').length}
+              {allBookings.filter(b => b.status === 'confirmed').length}
             </p>
             <p className="text-xs text-green-600">Confirmed</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-blue-600">
+              {allBookings.filter(b => b.status === 'completed').length}
+            </p>
+            <p className="text-xs text-blue-600">Completed</p>
           </CardContent>
         </Card>
         <Card className="bg-yellow-50 border-yellow-200">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-yellow-600">
-              {bookings.filter(b => b.payment_status === 'unpaid').length}
+              {allBookings.filter(b => b.payment_status === 'unpaid').length}
             </p>
             <p className="text-xs text-yellow-600">Unpaid</p>
           </CardContent>
@@ -177,7 +203,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
         <Card className="bg-red-50 border-red-200">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-red-600">
-              {bookings.filter(b => b.status === 'cancelled').length}
+              {allBookings.filter(b => b.status === 'cancelled').length}
             </p>
             <p className="text-xs text-red-600">Cancelled</p>
           </CardContent>
@@ -190,7 +216,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
           <Card>
             <CardContent className="p-8 text-center">
               <div className="text-gray-500">
-                {activeTab === 'all' ? 'No bookings yet' : `No ${activeTab} bookings`}
+                {activeTab === 'all' ? 'No bookings found' : `No ${activeTab} bookings found`}
               </div>
             </CardContent>
           </Card>
@@ -238,7 +264,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
                   </div>
                 )}
 
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2">
                   <EditBookingDialog
                     booking={booking}
                     onBookingUpdated={handleBookingUpdated}
@@ -270,7 +296,19 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
                     <span className="hidden sm:inline">Invoice</span>
                   </Button>
 
-                  {booking.status !== 'cancelled' && (
+                  {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleCompleteBooking(booking.id)}
+                      className="flex items-center gap-1 text-blue-600 border-blue-600 hover:bg-blue-50 w-full"
+                    >
+                      <CheckCircle className="w-3 h-3" />
+                      <span className="hidden sm:inline">Complete</span>
+                    </Button>
+                  )}
+
+                  {booking.status !== 'cancelled' && booking.status !== 'completed' && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button size="sm" variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50 w-full">

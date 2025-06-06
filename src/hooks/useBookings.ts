@@ -24,9 +24,19 @@ export interface Booking {
   };
 }
 
+export interface BookingFilters {
+  client_id?: string;
+  status?: string;
+  team_member_id?: string;
+  month?: string;
+  year?: string;
+}
+
 export const useBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<BookingFilters>({});
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -43,7 +53,9 @@ export const useBookings = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      const bookingsData = data || [];
+      setBookings(bookingsData);
+      setFilteredBookings(bookingsData);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({
@@ -54,6 +66,48 @@ export const useBookings = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = (newFilters: BookingFilters) => {
+    setFilters(newFilters);
+    
+    let filtered = [...bookings];
+
+    if (newFilters.client_id) {
+      filtered = filtered.filter(booking => booking.client_id === newFilters.client_id);
+    }
+
+    if (newFilters.status) {
+      filtered = filtered.filter(booking => booking.status === newFilters.status);
+    }
+
+    if (newFilters.team_member_id) {
+      filtered = filtered.filter(booking => 
+        booking.assigned_team_member_ids.includes(newFilters.team_member_id!)
+      );
+    }
+
+    if (newFilters.month && newFilters.year) {
+      filtered = filtered.filter(booking => {
+        if (!booking.date) return false;
+        const bookingDate = new Date(booking.date);
+        return bookingDate.getMonth() + 1 === parseInt(newFilters.month!) &&
+               bookingDate.getFullYear() === parseInt(newFilters.year!);
+      });
+    } else if (newFilters.year) {
+      filtered = filtered.filter(booking => {
+        if (!booking.date) return false;
+        const bookingDate = new Date(booking.date);
+        return bookingDate.getFullYear() === parseInt(newFilters.year!);
+      });
+    }
+
+    setFilteredBookings(filtered);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setFilteredBookings(bookings);
   };
 
   const addBooking = async (booking: Omit<Booking, 'id'>) => {
@@ -70,7 +124,9 @@ export const useBookings = () => {
         .single();
 
       if (error) throw error;
-      setBookings(prev => [data, ...prev]);
+      const newBookings = [data, ...bookings];
+      setBookings(newBookings);
+      applyFilters(filters); // Reapply current filters
       toast({
         title: "Success",
         description: "Booking added successfully"
@@ -99,7 +155,9 @@ export const useBookings = () => {
         .single();
 
       if (error) throw error;
-      setBookings(prev => prev.map(booking => booking.id === id ? data : booking));
+      const updatedBookings = bookings.map(booking => booking.id === id ? data : booking);
+      setBookings(updatedBookings);
+      applyFilters(filters); // Reapply current filters
       toast({
         title: "Success",
         description: "Booking updated successfully"
@@ -118,11 +176,19 @@ export const useBookings = () => {
     fetchBookings();
   }, [user]);
 
+  useEffect(() => {
+    applyFilters(filters);
+  }, [bookings]);
+
   return {
-    bookings,
+    bookings: filteredBookings,
+    allBookings: bookings,
     loading,
+    filters,
     addBooking,
     updateBooking,
+    applyFilters,
+    clearFilters,
     refetch: fetchBookings
   };
 };
