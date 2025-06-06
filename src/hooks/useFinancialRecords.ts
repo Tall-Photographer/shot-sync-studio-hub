@@ -7,12 +7,14 @@ import { useToast } from './use-toast';
 export interface FinancialRecord {
   id: string;
   user_id: string;
-  booking_id?: string;
+  booking_id?: string | null;
   type: 'income' | 'expense';
-  description: string;
+  description: string | null;
   amount: number;
   date: string;
-  category?: string;
+  category?: string | null;
+  notes?: string | null;
+  team_member_id?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -33,7 +35,7 @@ export const useFinancialRecords = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setFinancialRecords(data || []);
+      setFinancialRecords(data as FinancialRecord[] || []);
     } catch (error) {
       console.error('Error fetching financial records:', error);
       toast({
@@ -57,7 +59,7 @@ export const useFinancialRecords = () => {
         .single();
 
       if (error) throw error;
-      setFinancialRecords(prev => [data, ...prev]);
+      setFinancialRecords(prev => [data as FinancialRecord, ...prev]);
       toast({
         title: "Success",
         description: "Financial record added successfully"
@@ -83,7 +85,7 @@ export const useFinancialRecords = () => {
         .single();
 
       if (error) throw error;
-      setFinancialRecords(prev => prev.map(record => record.id === id ? data : record));
+      setFinancialRecords(prev => prev.map(record => record.id === id ? data as FinancialRecord : record));
       toast({
         title: "Success",
         description: "Financial record updated successfully"

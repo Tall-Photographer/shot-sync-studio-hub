@@ -24,7 +24,8 @@ const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
     description: '',
     amount: '',
     category: '',
-    booking_id: ''
+    booking_id: '',
+    notes: ''
   });
   
   const { addFinancialRecord } = useFinancialRecords();
@@ -39,7 +40,8 @@ const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
       description: '',
       amount: '',
       category: '',
-      booking_id: ''
+      booking_id: '',
+      notes: ''
     });
     setDate(new Date());
   };
@@ -53,7 +55,9 @@ const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
       amount: parseFloat(incomeData.amount),
       date: format(date, 'yyyy-MM-dd'),
       category: incomeData.category || null,
-      booking_id: incomeData.booking_id || null
+      booking_id: incomeData.booking_id || null,
+      notes: incomeData.notes || null,
+      team_member_id: null
     };
 
     const result = await addFinancialRecord(record);
@@ -68,7 +72,7 @@ const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Income</DialogTitle>
         </DialogHeader>
@@ -148,6 +152,17 @@ const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={incomeData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Additional notes about this income..."
+              rows={3}
+            />
           </div>
 
           <div className="flex space-x-2 pt-4">

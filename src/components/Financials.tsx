@@ -1,16 +1,18 @@
 
 import React from 'react';
-import { Plus, TrendingUp, TrendingDown, DollarSign, Calendar, Trash2 } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, DollarSign, Calendar, Trash2, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useFinancialRecords } from '@/hooks/useFinancialRecords';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 import AddExpenseDialog from './AddExpenseDialog';
 import AddIncomeDialog from './AddIncomeDialog';
 
 const Financials = () => {
   const { financialRecords, loading, deleteFinancialRecord } = useFinancialRecords();
+  const { teamMembers } = useTeamMembers();
 
   const totalIncome = financialRecords
     .filter(record => record.type === 'income')
@@ -28,6 +30,12 @@ const Financials = () => {
       case 'expense': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getTeamMemberName = (teamMemberId: string | null) => {
+    if (!teamMemberId) return null;
+    const member = teamMembers.find(m => m.id === teamMemberId);
+    return member ? member.name : 'Unknown Member';
   };
 
   const handleDeleteRecord = async (recordId: string) => {
@@ -132,7 +140,7 @@ const Financials = () => {
                         {record.type}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-1">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(record.date).toLocaleDateString()}
@@ -140,7 +148,18 @@ const Financials = () => {
                       {record.category && (
                         <span>Category: {record.category}</span>
                       )}
+                      {record.team_member_id && (
+                        <span className="flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {getTeamMemberName(record.team_member_id)}
+                        </span>
+                      )}
                     </div>
+                    {record.notes && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Note: {record.notes}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">

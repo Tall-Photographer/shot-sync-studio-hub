@@ -12,6 +12,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useFinancialRecords } from '@/hooks/useFinancialRecords';
 import { useBookings } from '@/hooks/useBookings';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 interface AddExpenseDialogProps {
   trigger: React.ReactNode;
@@ -25,11 +26,14 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
     description: '',
     amount: '',
     category: '',
-    booking_id: ''
+    booking_id: '',
+    team_member_id: '',
+    notes: ''
   });
   
   const { addFinancialRecord } = useFinancialRecords();
   const { bookings } = useBookings();
+  const { teamMembers } = useTeamMembers();
 
   const handleInputChange = (field: string, value: string) => {
     setExpenseData(prev => ({ ...prev, [field]: value }));
@@ -40,7 +44,9 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
       description: '',
       amount: '',
       category: '',
-      booking_id: ''
+      booking_id: '',
+      team_member_id: '',
+      notes: ''
     });
     setDate(new Date());
   };
@@ -54,7 +60,9 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
       amount: parseFloat(expenseData.amount),
       date: format(date, 'yyyy-MM-dd'),
       category: expenseData.category || null,
-      booking_id: expenseData.booking_id || null
+      booking_id: expenseData.booking_id || null,
+      team_member_id: expenseData.team_member_id || null,
+      notes: expenseData.notes || null
     };
 
     const result = await addFinancialRecord(record);
@@ -70,7 +78,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Expense</DialogTitle>
         </DialogHeader>
@@ -132,7 +140,25 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
                 <SelectItem value="Marketing">Marketing</SelectItem>
                 <SelectItem value="Office Supplies">Office Supplies</SelectItem>
                 <SelectItem value="Software">Software</SelectItem>
+                <SelectItem value="Salary">Salary</SelectItem>
+                <SelectItem value="Advance Payment">Advance Payment</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="team_member">Team Member (Optional)</Label>
+            <Select onValueChange={(value) => handleInputChange('team_member_id', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select team member" />
+              </SelectTrigger>
+              <SelectContent>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name} - {member.role}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -151,6 +177,17 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={expenseData.notes}
+              onChange={(e) => handleInputChange('notes', e.target.value)}
+              placeholder="Additional notes about this expense..."
+              rows={3}
+            />
           </div>
 
           <div className="flex space-x-2 pt-4">

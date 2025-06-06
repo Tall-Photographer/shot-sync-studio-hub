@@ -128,6 +128,8 @@ export type Database = {
           date: string
           description: string | null
           id: string
+          notes: string | null
+          team_member_id: string | null
           type: string
           updated_at: string | null
           user_id: string
@@ -140,6 +142,8 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
+          notes?: string | null
+          team_member_id?: string | null
           type: string
           updated_at?: string | null
           user_id: string
@@ -152,6 +156,8 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          notes?: string | null
+          team_member_id?: string | null
           type?: string
           updated_at?: string | null
           user_id?: string
@@ -162,6 +168,13 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_records_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team_members"
             referencedColumns: ["id"]
           },
         ]
