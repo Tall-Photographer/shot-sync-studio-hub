@@ -1,70 +1,24 @@
 
-import React, { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import React from 'react';
+import { Plus, TrendingUp, TrendingDown, DollarSign, Calendar, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useFinancialRecords } from '@/hooks/useFinancialRecords';
 import AddExpenseDialog from './AddExpenseDialog';
+import AddIncomeDialog from './AddIncomeDialog';
 
 const Financials = () => {
-  const [financialRecords, setFinancialRecords] = useState([
-    {
-      id: 1,
-      type: 'income',
-      description: 'Sarah & John Wedding Payment',
-      amount: 'AED 9,200',
-      date: '2025-05-30',
-      category: 'Wedding Photography',
-      relatedBooking: 'Sarah & John Wedding',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'expense',
-      description: 'Camera Equipment Rental',
-      amount: 'AED 850',
-      date: '2025-05-28',
-      category: 'Equipment Rental',
-      relatedBooking: 'Sarah & John Wedding',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'income',
-      description: 'Corporate Headshots',
-      amount: 'AED 2,390',
-      date: '2025-06-02',
-      category: 'Portrait Session',
-      relatedBooking: 'Corporate Headshots',
-      status: 'pending'
-    }
-  ]);
-
-  const handleExpenseAdded = (newExpense: any) => {
-    setFinancialRecords(prev => [newExpense, ...prev]);
-  };
-
-  const handleIncomeAdded = (newIncome: any) => {
-    const incomeRecord = {
-      ...newIncome,
-      type: 'income'
-    };
-    setFinancialRecords(prev => [incomeRecord, ...prev]);
-  };
+  const { financialRecords, loading, deleteFinancialRecord } = useFinancialRecords();
 
   const totalIncome = financialRecords
     .filter(record => record.type === 'income')
-    .reduce((sum, record) => {
-      const amount = parseFloat(record.amount.replace('AED ', '').replace(',', ''));
-      return sum + amount;
-    }, 0);
+    .reduce((sum, record) => sum + record.amount, 0);
 
   const totalExpenses = financialRecords
     .filter(record => record.type === 'expense')
-    .reduce((sum, record) => {
-      const amount = parseFloat(record.amount.replace('AED ', '').replace(',', ''));
-      return sum + amount;
-    }, 0);
+    .reduce((sum, record) => sum + record.amount, 0);
 
   const netProfit = totalIncome - totalExpenses;
 
@@ -76,13 +30,19 @@ const Financials = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const handleDeleteRecord = async (recordId: string) => {
+    await deleteFinancialRecord(recordId);
   };
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-500">Loading financial records...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
@@ -97,12 +57,16 @@ const Financials = () => {
                 Add Expense
               </Button>
             }
-            onExpenseAdded={handleExpenseAdded}
+            onExpenseAdded={() => {}}
           />
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Income
-          </Button>
+          <AddIncomeDialog
+            trigger={
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Income
+              </Button>
+            }
+          />
         </div>
       </div>
 
@@ -150,45 +114,71 @@ const Financials = () => {
       {/* Financial Records */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>All Transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {financialRecords.map((record) => (
-              <div key={record.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-gray-900">{record.description}</h4>
-                    <Badge className={getTypeColor(record.type)}>
-                      {record.type}
-                    </Badge>
-                    <Badge className={getStatusColor(record.status)}>
-                      {record.status}
-                    </Badge>
+          {financialRecords.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No financial records yet. Add your first income or expense to get started.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {financialRecords.map((record) => (
+                <div key={record.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-gray-900">{record.description}</h4>
+                      <Badge className={getTypeColor(record.type)}>
+                        {record.type}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(record.date).toLocaleDateString()}
+                      </span>
+                      {record.category && (
+                        <span>Category: {record.category}</span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {record.date}
-                    </span>
-                    {record.category && (
-                      <span>Category: {record.category}</span>
-                    )}
-                    {record.relatedBooking && (
-                      <span>Booking: {record.relatedBooking}</span>
-                    )}
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className={`text-lg font-semibold ${
+                        record.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {record.type === 'expense' ? '-' : '+'}AED {record.amount.toLocaleString()}
+                      </p>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this transaction? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteRecord(record.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-lg font-semibold ${
-                    record.type === 'income' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {record.type === 'expense' ? '-' : '+'}{record.amount}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

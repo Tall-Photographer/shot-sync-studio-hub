@@ -8,6 +8,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import QuotationDialog from './QuotationDialog';
 import NewBookingDialog from './NewBookingDialog';
 import EditBookingDialog from './EditBookingDialog';
+import { useBookings } from '@/hooks/useBookings';
+import { useClients } from '@/hooks/useClients';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useToast } from '@/hooks/use-toast';
 
 interface BookingsProps {
@@ -18,52 +21,10 @@ interface BookingsProps {
 
 const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: BookingsProps) => {
   const [activeTab, setActiveTab] = useState('all');
+  const { bookings, loading, updateBooking } = useBookings();
+  const { clients } = useClients();
+  const { teamMembers } = useTeamMembers();
   const { toast } = useToast();
-
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      name: 'Sarah & John Wedding',
-      client: 'Sarah Johnson',
-      service: 'Wedding Photography',
-      date: '2025-05-30',
-      time: '14:00 - 18:00',
-      location: 'Central Park, NYC',
-      assignedTo: 'Alex Thompson, Emma Wilson',
-      status: 'confirmed',
-      amount: 'AED 9,200',
-      paymentStatus: 'partial',
-      notes: 'Outdoor ceremony, backup indoor location ready'
-    },
-    {
-      id: 2,
-      name: 'Corporate Headshots',
-      client: 'Mike Davis',
-      service: 'Portrait Session',
-      date: '2025-06-02',
-      time: '10:00 - 12:00',
-      location: 'Studio Downtown',
-      assignedTo: 'Emma Wilson',
-      status: 'pending',
-      amount: 'AED 2,390',
-      paymentStatus: 'unpaid',
-      notes: 'Professional headshots for LinkedIn'
-    },
-    {
-      id: 3,
-      name: 'Family Summer Photos',
-      client: 'Emma Wilson',
-      service: 'Family Photography',
-      date: '2025-06-05',
-      time: '09:00 - 11:00',
-      location: 'Riverside Park',
-      assignedTo: 'Alex Thompson',
-      status: 'confirmed',
-      amount: 'AED 2,945',
-      paymentStatus: 'paid',
-      notes: 'Golden hour session with 3 kids'
-    }
-  ]);
 
   // Scroll to selected booking when it changes
   useEffect(() => {
@@ -71,7 +32,6 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
       const element = document.getElementById(`booking-${selectedBookingId}`);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add highlight effect
         element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
         setTimeout(() => {
           element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
@@ -80,34 +40,17 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
     }
   }, [selectedBookingId]);
 
-  const handleBookingAdded = (newBooking: any) => {
-    setBookings(prev => [...prev, newBooking]);
-  };
-
   const handleBookingUpdated = (updatedBooking: any) => {
-    setBookings(prev => prev.map(booking => 
-      booking.id === updatedBooking.id ? updatedBooking : booking
-    ));
-    
-    // Notify parent component about the update
     onBookingUpdated?.(updatedBooking);
-    
     toast({
       title: "Booking Updated",
       description: "The booking has been successfully updated",
     });
   };
 
-  const handleCancelBooking = (bookingId: number) => {
-    setBookings(prev => prev.map(booking => 
-      booking.id === bookingId 
-        ? { ...booking, status: 'cancelled' }
-        : booking
-    ));
-    
-    // Notify parent component about the cancellation
-    onBookingCancelled?.(bookingId);
-    
+  const handleCancelBooking = async (bookingId: string) => {
+    await updateBooking(bookingId, { status: 'cancelled' });
+    onBookingCancelled?.(parseInt(bookingId));
     toast({
       title: "Booking Cancelled",
       description: "The booking has been successfully cancelled",
@@ -140,6 +83,17 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
     }
   };
 
+  const getClientName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client?.name || 'Unknown Client';
+  };
+
+  const getTeamMemberNames = (memberIds: string[]) => {
+    return memberIds
+      .map(id => teamMembers.find(m => m.id === id)?.name || 'Unknown')
+      .join(', ') || 'Not assigned';
+  };
+
   // Filter bookings based on active tab
   const filteredBookings = bookings.filter(booking => {
     if (activeTab === 'all') return true;
@@ -153,6 +107,16 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
     { id: 'cancelled', label: 'Cancelled', count: bookings.filter(b => b.status === 'cancelled').length }
   ];
 
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-500">Loading bookings...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 space-y-6 pb-24 sm:pb-6">
       {/* Header */}
@@ -165,7 +129,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
               New Booking
             </Button>
           }
-          onBookingAdded={handleBookingAdded}
+          onBookingAdded={() => {}}
         />
       </div>
 
@@ -205,7 +169,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
         <Card className="bg-yellow-50 border-yellow-200">
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-yellow-600">
-              {bookings.filter(b => b.paymentStatus === 'unpaid').length}
+              {bookings.filter(b => b.payment_status === 'unpaid').length}
             </p>
             <p className="text-xs text-yellow-600">Unpaid</p>
           </CardContent>
@@ -222,110 +186,122 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
 
       {/* Bookings List */}
       <div className="space-y-4">
-        {filteredBookings.map((booking) => (
-          <Card key={booking.id} id={`booking-${booking.id}`} className="bg-white shadow-sm border-0 transition-all">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1 truncate">{booking.name}</h3>
-                  <p className="text-sm text-gray-600 truncate">{booking.client}</p>
-                </div>
-                <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
-                  <Badge className={getStatusColor(booking.status)}>
-                    {booking.status}
-                  </Badge>
-                  <Badge className={getPaymentColor(booking.paymentStatus)}>
-                    {booking.paymentStatus}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{booking.date} • {booking.time}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{booking.location}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Assigned to: {booking.assignedTo}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <DollarSign className="w-4 h-4 flex-shrink-0" />
-                  <span>{booking.amount}</span>
-                </div>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <p className="text-sm text-gray-700 break-words">{booking.notes}</p>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <EditBookingDialog
-                  booking={booking}
-                  onBookingUpdated={handleBookingUpdated}
-                  trigger={
-                    <Button size="sm" variant="outline" className="flex items-center gap-1 w-full">
-                      <Edit className="w-3 h-3" />
-                      <span className="hidden sm:inline">Edit</span>
-                    </Button>
-                  }
-                />
-                
-                <QuotationDialog
-                  booking={booking}
-                  trigger={
-                    <Button size="sm" variant="outline" className="flex items-center gap-1 w-full">
-                      <FileText className="w-3 h-3" />
-                      <span className="hidden sm:inline">Quote</span>
-                    </Button>
-                  }
-                />
-                
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => handleCreateInvoice(booking)}
-                  className="flex items-center gap-1 w-full"
-                >
-                  <Receipt className="w-3 h-3" />
-                  <span className="hidden sm:inline">Invoice</span>
-                </Button>
-
-                {booking.status !== 'cancelled' && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50 w-full">
-                        <X className="w-3 h-3" />
-                        <span className="hidden sm:inline">Cancel</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to cancel this booking? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => handleCancelBooking(booking.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Cancel Booking
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
+        {filteredBookings.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-gray-500">
+                {activeTab === 'all' ? 'No bookings yet' : `No ${activeTab} bookings`}
               </div>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          filteredBookings.map((booking) => (
+            <Card key={booking.id} id={`booking-${booking.id}`} className="bg-white shadow-sm border-0 transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-gray-900 mb-1 truncate">{booking.name}</h3>
+                    <p className="text-sm text-gray-600 truncate">{getClientName(booking.client_id || '')}</p>
+                  </div>
+                  <div className="flex flex-col space-y-1 ml-2 flex-shrink-0">
+                    <Badge className={getStatusColor(booking.status)}>
+                      {booking.status}
+                    </Badge>
+                    <Badge className={getPaymentColor(booking.payment_status)}>
+                      {booking.payment_status}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{booking.date} • {booking.start_time} - {booking.end_time}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{booking.location}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">Assigned to: {getTeamMemberNames(booking.assigned_team_member_ids)}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="w-4 h-4 flex-shrink-0" />
+                    <span>AED {booking.amount?.toLocaleString() || '0'}</span>
+                  </div>
+                </div>
+
+                {booking.notes && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-sm text-gray-700 break-words">{booking.notes}</p>
+                  </div>
+                )}
+
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <EditBookingDialog
+                    booking={booking}
+                    onBookingUpdated={handleBookingUpdated}
+                    trigger={
+                      <Button size="sm" variant="outline" className="flex items-center gap-1 w-full">
+                        <Edit className="w-3 h-3" />
+                        <span className="hidden sm:inline">Edit</span>
+                      </Button>
+                    }
+                  />
+                  
+                  <QuotationDialog
+                    booking={booking}
+                    trigger={
+                      <Button size="sm" variant="outline" className="flex items-center gap-1 w-full">
+                        <FileText className="w-3 h-3" />
+                        <span className="hidden sm:inline">Quote</span>
+                      </Button>
+                    }
+                  />
+                  
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => handleCreateInvoice(booking)}
+                    className="flex items-center gap-1 w-full"
+                  >
+                    <Receipt className="w-3 h-3" />
+                    <span className="hidden sm:inline">Invoice</span>
+                  </Button>
+
+                  {booking.status !== 'cancelled' && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="outline" className="flex items-center gap-1 text-red-600 border-red-600 hover:bg-red-50 w-full">
+                          <X className="w-3 h-3" />
+                          <span className="hidden sm:inline">Cancel</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to cancel this booking? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleCancelBooking(booking.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Cancel Booking
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

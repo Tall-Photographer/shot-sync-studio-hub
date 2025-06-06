@@ -13,15 +13,14 @@ import { format } from 'date-fns';
 import { useFinancialRecords } from '@/hooks/useFinancialRecords';
 import { useBookings } from '@/hooks/useBookings';
 
-interface AddExpenseDialogProps {
+interface AddIncomeDialogProps {
   trigger: React.ReactNode;
-  onExpenseAdded: (expense: any) => void;
 }
 
-const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) => {
+const AddIncomeDialog = ({ trigger }: AddIncomeDialogProps) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
-  const [expenseData, setExpenseData] = useState({
+  const [incomeData, setIncomeData] = useState({
     description: '',
     amount: '',
     category: '',
@@ -32,11 +31,11 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
   const { bookings } = useBookings();
 
   const handleInputChange = (field: string, value: string) => {
-    setExpenseData(prev => ({ ...prev, [field]: value }));
+    setIncomeData(prev => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
-    setExpenseData({
+    setIncomeData({
       description: '',
       amount: '',
       category: '',
@@ -49,17 +48,16 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
     e.preventDefault();
     
     const record = {
-      type: 'expense' as const,
-      description: expenseData.description,
-      amount: parseFloat(expenseData.amount),
+      type: 'income' as const,
+      description: incomeData.description,
+      amount: parseFloat(incomeData.amount),
       date: format(date, 'yyyy-MM-dd'),
-      category: expenseData.category || null,
-      booking_id: expenseData.booking_id || null
+      category: incomeData.category || null,
+      booking_id: incomeData.booking_id || null
     };
 
     const result = await addFinancialRecord(record);
     if (result) {
-      onExpenseAdded(result);
       resetForm();
       setOpen(false);
     }
@@ -72,7 +70,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
       </DialogTrigger>
       <DialogContent className="max-w-md mx-auto">
         <DialogHeader>
-          <DialogTitle>Add Expense</DialogTitle>
+          <DialogTitle>Add Income</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,9 +78,9 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
             <Label htmlFor="description">Description</Label>
             <Input
               id="description"
-              value={expenseData.description}
+              value={incomeData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Equipment rental, travel, etc..."
+              placeholder="Payment from client..."
               required
             />
           </div>
@@ -93,7 +91,7 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
               id="amount"
               type="number"
               step="0.01"
-              value={expenseData.amount}
+              value={incomeData.amount}
               onChange={(e) => handleInputChange('amount', e.target.value)}
               placeholder="0.00"
               required
@@ -127,11 +125,10 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Equipment Rental">Equipment Rental</SelectItem>
-                <SelectItem value="Travel">Travel</SelectItem>
-                <SelectItem value="Marketing">Marketing</SelectItem>
-                <SelectItem value="Office Supplies">Office Supplies</SelectItem>
-                <SelectItem value="Software">Software</SelectItem>
+                <SelectItem value="Wedding Photography">Wedding Photography</SelectItem>
+                <SelectItem value="Portrait Session">Portrait Session</SelectItem>
+                <SelectItem value="Event Photography">Event Photography</SelectItem>
+                <SelectItem value="Corporate">Corporate</SelectItem>
                 <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -157,8 +154,8 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-red-600 hover:bg-red-700">
-              Add Expense
+            <Button type="submit" className="flex-1 bg-green-600 hover:bg-green-700">
+              Add Income
             </Button>
           </div>
         </form>
@@ -167,4 +164,4 @@ const AddExpenseDialog = ({ trigger, onExpenseAdded }: AddExpenseDialogProps) =>
   );
 };
 
-export default AddExpenseDialog;
+export default AddIncomeDialog;

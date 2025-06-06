@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import NewBookingDialog from './NewBookingDialog';
 import EditBookingDialog from './EditBookingDialog';
+import { useBookings } from '@/hooks/useBookings';
+import { useClients } from '@/hooks/useClients';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 interface CalendarProps {
   updatedBooking?: any;
@@ -16,76 +20,9 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('month');
   const [selectedDate, setSelectedDate] = useState<string>('');
 
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      name: 'Sarah & John Wedding',
-      date: '2025-05-30',
-      time: '14:00 - 18:00',
-      assignedTo: 'Alex Thompson',
-      status: 'confirmed',
-      client: 'Sarah Johnson',
-      location: 'Central Park, NYC',
-      amount: '$2,500',
-      paymentStatus: 'partial',
-      notes: 'Outdoor ceremony, backup indoor location ready'
-    },
-    {
-      id: 2,
-      name: 'Corporate Headshots',
-      date: '2025-06-02',
-      time: '10:00 - 12:00',
-      assignedTo: 'Emma Wilson',
-      status: 'pending',
-      client: 'Mike Davis',
-      location: 'Studio Downtown',
-      amount: '$650',
-      paymentStatus: 'unpaid',
-      notes: 'Professional headshots for LinkedIn'
-    },
-    {
-      id: 3,
-      name: 'Family Photos',
-      date: '2025-06-05',
-      time: '09:00 - 11:00',
-      assignedTo: 'Alex Thompson',
-      status: 'confirmed',
-      client: 'Emma Wilson',
-      location: 'Riverside Park',
-      amount: '$800',
-      paymentStatus: 'paid',
-      notes: 'Golden hour session with 3 kids'
-    }
-  ]);
-
-  // Update bookings when changes come from other components
-  useEffect(() => {
-    if (updatedBooking) {
-      setBookings(prev => prev.map(booking => 
-        booking.id === updatedBooking.id ? updatedBooking : booking
-      ));
-    }
-  }, [updatedBooking]);
-
-  useEffect(() => {
-    if (cancelledBookingId) {
-      setBookings(prev => prev.map(booking => 
-        booking.id === cancelledBookingId 
-          ? { ...booking, status: 'cancelled' }
-          : booking
-      ));
-    }
-  }, [cancelledBookingId]);
-
-  const handleBookingAdded = (newBooking: any) => {
-    setBookings(prev => [...prev, newBooking]);
-  };
-
-  const handleBookingUpdated = (updatedBooking: any) => {
-    setBookings(prev => prev.map(booking => 
-      booking.id === updatedBooking.id ? updatedBooking : booking
-    ));
-  };
+  const { bookings, loading } = useBookings();
+  const { clients } = useClients();
+  const { teamMembers } = useTeamMembers();
 
   const handleDayClick = (date: string) => {
     setSelectedDate(date);
@@ -125,6 +62,17 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
     return bookings.filter(booking => booking.date === date && booking.status !== 'cancelled');
   };
 
+  const getClientName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client?.name || 'Unknown Client';
+  };
+
+  const getTeamMemberName = (memberIds: string[]) => {
+    if (memberIds.length === 0) return 'Unassigned';
+    const member = teamMembers.find(m => m.id === memberIds[0]);
+    return member?.name || 'Unknown';
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800';
@@ -149,7 +97,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                   Add Booking
                 </Button>
               }
-              onBookingAdded={handleBookingAdded}
+              onBookingAdded={() => {}}
               defaultDate={dateStr}
             />
           </div>
@@ -161,7 +109,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                 <EditBookingDialog
                   key={booking.id}
                   booking={booking}
-                  onBookingUpdated={handleBookingUpdated}
+                  onBookingUpdated={() => {}}
                   trigger={
                     <div className="bg-blue-50 rounded-lg p-3 cursor-pointer hover:bg-blue-100 transition-colors">
                       <div className="flex items-center justify-between mb-2">
@@ -170,8 +118,8 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                           {booking.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600">{booking.time}</p>
-                      <p className="text-sm text-blue-600">📸 {booking.assignedTo}</p>
+                      <p className="text-sm text-gray-600">{booking.start_time} - {booking.end_time}</p>
+                      <p className="text-sm text-blue-600">📸 {getTeamMemberName(booking.assigned_team_member_ids)}</p>
                     </div>
                   }
                 />
@@ -217,7 +165,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                       <Plus className="w-3 h-3" />
                     </Button>
                   }
-                  onBookingAdded={handleBookingAdded}
+                  onBookingAdded={() => {}}
                   defaultDate={weekDays[index].toISOString().split('T')[0]}
                 />
               </div>
@@ -225,14 +173,14 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                 <EditBookingDialog
                   key={booking.id}
                   booking={booking}
-                  onBookingUpdated={handleBookingUpdated}
+                  onBookingUpdated={() => {}}
                   trigger={
                     <div 
                       className="bg-blue-100 rounded text-xs p-1 mb-1 cursor-pointer hover:bg-blue-200 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <p className="font-medium truncate">{booking.name}</p>
-                      <p className="text-gray-600">{booking.time.split(' - ')[0]}</p>
+                      <p className="text-gray-600">{booking.start_time}</p>
                     </div>
                   }
                 />
@@ -303,7 +251,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                           <Plus className="w-2 h-2" />
                         </Button>
                       }
-                      onBookingAdded={handleBookingAdded}
+                      onBookingAdded={() => {}}
                       defaultDate={day.toISOString().split('T')[0]}
                     />
                   </div>
@@ -311,7 +259,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
                     <EditBookingDialog
                       key={booking.id}
                       booking={booking}
-                      onBookingUpdated={handleBookingUpdated}
+                      onBookingUpdated={() => {}}
                       trigger={
                         <div 
                           className="bg-blue-100 rounded text-xs p-1 mb-1 cursor-pointer hover:bg-blue-200 transition-colors"
@@ -333,6 +281,16 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-500">Loading calendar...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-6">
@@ -396,7 +354,7 @@ const Calendar = ({ updatedBooking, cancelledBookingId }: CalendarProps) => {
       {selectedDate && (
         <NewBookingDialog
           trigger={<div />}
-          onBookingAdded={handleBookingAdded}
+          onBookingAdded={() => {}}
           defaultDate={selectedDate}
         />
       )}
