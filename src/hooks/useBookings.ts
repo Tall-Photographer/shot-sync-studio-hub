@@ -44,6 +44,7 @@ export const useBookings = () => {
     if (!user) return;
     
     try {
+      console.log('Fetching bookings for user:', user.id);
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -52,7 +53,12 @@ export const useBookings = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        throw error;
+      }
+      
+      console.log('Fetched bookings:', data);
       const bookingsData = data || [];
       setBookings(bookingsData);
       setFilteredBookings(bookingsData);
@@ -60,7 +66,7 @@ export const useBookings = () => {
       console.error('Error fetching bookings:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch bookings",
+        description: "Failed to fetch bookings. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -114,6 +120,7 @@ export const useBookings = () => {
     if (!user) return;
 
     try {
+      console.log('Adding booking:', booking);
       const { data, error } = await supabase
         .from('bookings')
         .insert([{ ...booking, user_id: user.id }])
@@ -123,7 +130,12 @@ export const useBookings = () => {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding booking:', error);
+        throw error;
+      }
+      
+      console.log('Added booking:', data);
       const newBookings = [data, ...bookings];
       setBookings(newBookings);
       applyFilters(filters); // Reapply current filters
@@ -136,7 +148,7 @@ export const useBookings = () => {
       console.error('Error adding booking:', error);
       toast({
         title: "Error",
-        description: "Failed to add booking",
+        description: "Failed to add booking. Please try again.",
         variant: "destructive"
       });
     }
@@ -144,6 +156,7 @@ export const useBookings = () => {
 
   const updateBooking = async (id: string, updates: Partial<Booking>) => {
     try {
+      console.log('Updating booking:', id, updates);
       const { data, error } = await supabase
         .from('bookings')
         .update(updates)
@@ -154,7 +167,12 @@ export const useBookings = () => {
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating booking:', error);
+        throw error;
+      }
+      
+      console.log('Updated booking:', data);
       const updatedBookings = bookings.map(booking => booking.id === id ? data : booking);
       setBookings(updatedBookings);
       applyFilters(filters); // Reapply current filters
@@ -166,7 +184,7 @@ export const useBookings = () => {
       console.error('Error updating booking:', error);
       toast({
         title: "Error",
-        description: "Failed to update booking",
+        description: "Failed to update booking. Please try again.",
         variant: "destructive"
       });
     }

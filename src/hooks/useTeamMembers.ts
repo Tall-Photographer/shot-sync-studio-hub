@@ -24,18 +24,24 @@ export const useTeamMembers = () => {
     if (!user) return;
     
     try {
+      console.log('Fetching team members for user:', user.id);
       const { data, error } = await supabase
         .from('team_members')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching team members:', error);
+        throw error;
+      }
+      
+      console.log('Fetched team members:', data);
       setTeamMembers(data || []);
     } catch (error) {
       console.error('Error fetching team members:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch team members",
+        description: "Failed to fetch team members. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -47,13 +53,19 @@ export const useTeamMembers = () => {
     if (!user) return;
 
     try {
+      console.log('Adding team member:', member);
       const { data, error } = await supabase
         .from('team_members')
         .insert([{ ...member, user_id: user.id }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding team member:', error);
+        throw error;
+      }
+      
+      console.log('Added team member:', data);
       setTeamMembers(prev => [data, ...prev]);
       toast({
         title: "Success",
@@ -64,7 +76,7 @@ export const useTeamMembers = () => {
       console.error('Error adding team member:', error);
       toast({
         title: "Error",
-        description: "Failed to add team member",
+        description: "Failed to add team member. Please try again.",
         variant: "destructive"
       });
     }
@@ -72,6 +84,7 @@ export const useTeamMembers = () => {
 
   const updateTeamMember = async (id: string, updates: Partial<TeamMember>) => {
     try {
+      console.log('Updating team member:', id, updates);
       const { data, error } = await supabase
         .from('team_members')
         .update(updates)
@@ -79,7 +92,12 @@ export const useTeamMembers = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating team member:', error);
+        throw error;
+      }
+      
+      console.log('Updated team member:', data);
       setTeamMembers(prev => prev.map(member => member.id === id ? data : member));
       toast({
         title: "Success",
@@ -89,7 +107,7 @@ export const useTeamMembers = () => {
       console.error('Error updating team member:', error);
       toast({
         title: "Error",
-        description: "Failed to update team member",
+        description: "Failed to update team member. Please try again.",
         variant: "destructive"
       });
     }

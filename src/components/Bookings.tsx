@@ -21,7 +21,7 @@ interface BookingsProps {
 
 const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: BookingsProps) => {
   const [activeTab, setActiveTab] = useState('all');
-  const { bookings, allBookings, loading, updateBooking, filters, applyFilters, clearFilters } = useBookings();
+  const { bookings, allBookings, loading, updateBooking, filters, applyFilters, clearFilters, refetch } = useBookings();
   const { clients } = useClients();
   const { teamMembers } = useTeamMembers();
   const { toast } = useToast();
@@ -42,9 +42,18 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
 
   const handleBookingUpdated = (updatedBooking: any) => {
     onBookingUpdated?.(updatedBooking);
+    refetch(); // Refresh the bookings list
     toast({
       title: "Booking Updated",
       description: "The booking has been successfully updated",
+    });
+  };
+
+  const handleBookingAdded = () => {
+    refetch(); // Refresh the bookings list when a new booking is added
+    toast({
+      title: "Booking Added",
+      description: "The booking has been successfully added",
     });
   };
 
@@ -120,7 +129,7 @@ const Bookings = ({ selectedBookingId, onBookingUpdated, onBookingCancelled }: B
               New Booking
             </Button>
           }
-          onBookingAdded={() => {}}
+          onBookingAdded={handleBookingAdded}
         />
       </div>
 

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Plus, User, Mail, Phone, DollarSign, Edit, MapPin } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, User, Mail, Phone, DollarSign, Edit } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import AddTeamMemberDialog from './AddTeamMemberDialog';
@@ -9,7 +9,15 @@ import EditTeamMemberDialog from './EditTeamMemberDialog';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 const Team = () => {
-  const { teamMembers, loading } = useTeamMembers();
+  const { teamMembers, loading, refetch } = useTeamMembers();
+
+  const handleTeamMemberAdded = () => {
+    refetch(); // Refresh the team members list when a new member is added
+  };
+
+  const handleTeamMemberUpdated = () => {
+    refetch(); // Refresh the team members list when a member is updated
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -43,6 +51,7 @@ const Team = () => {
               Add Team Member
             </Button>
           }
+          onTeamMemberAdded={handleTeamMemberAdded}
         />
       </div>
 
@@ -118,7 +127,7 @@ const Team = () => {
                           <Edit className="w-4 h-4" />
                         </Button>
                       }
-                      onMemberUpdated={() => {}}
+                      onMemberUpdated={handleTeamMemberUpdated}
                     />
                   </div>
                 </div>

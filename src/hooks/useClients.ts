@@ -25,18 +25,24 @@ export const useClients = () => {
     if (!user) return;
     
     try {
+      console.log('Fetching clients for user:', user.id);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching clients:', error);
+        throw error;
+      }
+      
+      console.log('Fetched clients:', data);
       setClients(data || []);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch clients",
+        description: "Failed to fetch clients. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -48,13 +54,19 @@ export const useClients = () => {
     if (!user) return;
 
     try {
+      console.log('Adding client:', client);
       const { data, error } = await supabase
         .from('clients')
         .insert([{ ...client, user_id: user.id }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding client:', error);
+        throw error;
+      }
+      
+      console.log('Added client:', data);
       setClients(prev => [data, ...prev]);
       toast({
         title: "Success",
@@ -65,7 +77,7 @@ export const useClients = () => {
       console.error('Error adding client:', error);
       toast({
         title: "Error",
-        description: "Failed to add client",
+        description: "Failed to add client. Please try again.",
         variant: "destructive"
       });
     }
@@ -73,6 +85,7 @@ export const useClients = () => {
 
   const updateClient = async (id: string, updates: Partial<Client>) => {
     try {
+      console.log('Updating client:', id, updates);
       const { data, error } = await supabase
         .from('clients')
         .update(updates)
@@ -80,7 +93,12 @@ export const useClients = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating client:', error);
+        throw error;
+      }
+      
+      console.log('Updated client:', data);
       setClients(prev => prev.map(client => client.id === id ? data : client));
       toast({
         title: "Success",
@@ -90,7 +108,7 @@ export const useClients = () => {
       console.error('Error updating client:', error);
       toast({
         title: "Error",
-        description: "Failed to update client",
+        description: "Failed to update client. Please try again.",
         variant: "destructive"
       });
     }
