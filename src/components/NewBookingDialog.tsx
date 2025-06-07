@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useBookings } from '@/hooks/useBookings';
+import { useClients } from '@/hooks/useClients';
+import { useTeamMembers } from '@/hooks/useTeamMembers';
 
 interface NewBookingDialogProps {
   trigger: React.ReactNode;
@@ -20,16 +23,16 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
   const [open, setOpen] = useState(false);
   const [bookingData, setBookingData] = useState({
     name: '',
-    client: '',
-    service: [] as string[],
+    client_id: '',
+    service_ids: [] as string[],
     date: defaultDate || '',
-    startTime: '',
-    endTime: '',
+    start_time: '',
+    end_time: '',
     location: '',
-    assignedTo: [] as string[],
+    assigned_team_member_ids: [] as string[],
     amount: '',
     expenses: '',
-    paymentStatus: 'unpaid',
+    payment_status: 'unpaid',
     notes: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -38,15 +41,11 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
   const [showNewServiceInput, setShowNewServiceInput] = useState(false);
   const [newServiceName, setNewServiceName] = useState('');
   const { toast } = useToast();
+  const { addBooking } = useBookings();
+  const { clients, addClient } = useClients();
+  const { teamMembers } = useTeamMembers();
 
-  const clients = [
-    'Sarah Johnson',
-    'Mike Davis', 
-    'Emma Wilson',
-    'John Smith',
-    'Lisa Brown'
-  ];
-
+  // Create some default services if none exist
   const [serviceTypes, setServiceTypes] = useState([
     'Wedding Photography',
     'Portrait Session',
@@ -55,13 +54,6 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     'Event Photography'
   ]);
 
-  const teamMembers = [
-    'Alex Thompson',
-    'Emma Wilson', 
-    'Mike Johnson',
-    'Sarah Davis'
-  ];
-
   const handleInputChange = (field: string, value: string | string[]) => {
     setBookingData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -69,25 +61,35 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     }
   };
 
-  const handleTeamMemberToggle = (member: string, checked: boolean) => {
+  const handleTeamMemberToggle = (memberId: string, checked: boolean) => {
     const updatedAssignments = checked 
-      ? [...bookingData.assignedTo, member]
-      : bookingData.assignedTo.filter(m => m !== member);
-    handleInputChange('assignedTo', updatedAssignments);
+      ? [...bookingData.assigned_team_member_ids, memberId]
+      : bookingData.assigned_team_member_ids.filter(id => id !== memberId);
+    handleInputChange('assigned_team_member_ids', updatedAssignments);
   };
 
   const handleServiceToggle = (service: string, checked: boolean) => {
     const updatedServices = checked 
-      ? [...bookingData.service, service]
-      : bookingData.service.filter(s => s !== service);
-    handleInputChange('service', updatedServices);
+      ? [...bookingData.service_ids, service]
+      : bookingData.service_ids.filter(s => s !== service);
+    handleInputChange('service_ids', updatedServices);
   };
 
-  const handleAddNewClient = () => {
+  const handleAddNewClient = async () => {
     if (newClientName.trim()) {
-      handleInputChange('client', newClientName.trim());
-      setNewClientName('');
-      setShowNewClientInput(false);
+      const newClient = await addClient({
+        name: newClientName.trim(),
+        email: '',
+        phone: '',
+        last_booked: '',
+        notes: ''
+      });
+      
+      if (newClient) {
+        handleInputChange('client_id', newClient.id);
+        setNewClientName('');
+        setShowNewClientInput(false);
+      }
     }
   };
 
@@ -95,7 +97,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     if (newServiceName.trim() && !serviceTypes.includes(newServiceName.trim())) {
       const newService = newServiceName.trim();
       setServiceTypes(prev => [...prev, newService]);
-      handleInputChange('service', [...bookingData.service, newService]);
+      handleInputChange('service_ids', [...bookingData.service_ids, newService]);
       setNewServiceName('');
       setShowNewServiceInput(false);
     }
@@ -107,26 +109,26 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     if (!bookingData.name.trim()) {
       newErrors.name = 'Booking name is required';
     }
-    if (!bookingData.client) {
-      newErrors.client = 'Client must be selected or created';
+    if (!bookingData.client_id) {
+      newErrors.client_id = 'Client must be selected or created';
     }
-    if (bookingData.service.length === 0) {
-      newErrors.service = 'At least one service must be selected';
+    if (bookingData.service_ids.length === 0) {
+      newErrors.service_ids = 'At least one service must be selected';
     }
     if (!bookingData.date) {
       newErrors.date = 'Date is required';
     }
-    if (!bookingData.startTime) {
-      newErrors.startTime = 'Start time is required';
+    if (!bookingData.start_time) {
+      newErrors.start_time = 'Start time is required';
     }
-    if (!bookingData.endTime) {
-      newErrors.endTime = 'End time is required';
+    if (!bookingData.end_time) {
+      newErrors.end_time = 'End time is required';
     }
-    if (bookingData.startTime && bookingData.endTime && bookingData.startTime >= bookingData.endTime) {
-      newErrors.endTime = 'End time must be after start time';
+    if (bookingData.start_time && bookingData.end_time && bookingData.start_time >= bookingData.end_time) {
+      newErrors.end_time = 'End time must be after start time';
     }
-    if (bookingData.assignedTo.length === 0) {
-      newErrors.assignedTo = 'At least one team member must be assigned';
+    if (bookingData.assigned_team_member_ids.length === 0) {
+      newErrors.assigned_team_member_ids = 'At least one team member must be assigned';
     }
     if (bookingData.amount && isNaN(Number(bookingData.amount))) {
       newErrors.amount = 'Amount must be a valid number';
@@ -139,7 +141,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -152,46 +154,50 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
     }
 
     const newBooking = {
-      id: Date.now(),
-      ...bookingData,
+      name: bookingData.name,
+      client_id: bookingData.client_id,
+      service_ids: bookingData.service_ids,
+      date: bookingData.date,
+      start_time: bookingData.start_time,
+      end_time: bookingData.end_time,
+      location: bookingData.location,
+      assigned_team_member_ids: bookingData.assigned_team_member_ids,
       status: 'pending',
-      amount: bookingData.amount ? `AED ${bookingData.amount}` : 'AED 0',
-      expenses: bookingData.expenses ? `AED ${bookingData.expenses}` : 'AED 0',
-      time: `${bookingData.startTime} - ${bookingData.endTime}`,
-      assignedTo: bookingData.assignedTo.join(', '),
-      service: bookingData.service.join(', ')
+      amount: bookingData.amount ? Number(bookingData.amount) : 0,
+      expenses: bookingData.expenses ? Number(bookingData.expenses) : 0,
+      payment_status: bookingData.payment_status,
+      notes: bookingData.notes
     };
 
     console.log('Creating new booking:', newBooking);
     
-    toast({
-      title: "Booking Created",
-      description: "New booking has been added successfully"
-    });
-
-    onBookingAdded?.(newBooking);
-    setOpen(false);
+    const createdBooking = await addBooking(newBooking);
     
-    // Reset form
-    setBookingData({
-      name: '',
-      client: '',
-      service: [],
-      date: defaultDate || '',
-      startTime: '',
-      endTime: '',
-      location: '',
-      assignedTo: [],
-      amount: '',
-      expenses: '',
-      paymentStatus: 'unpaid',
-      notes: ''
-    });
-    setErrors({});
-    setShowNewClientInput(false);
-    setShowNewServiceInput(false);
-    setNewClientName('');
-    setNewServiceName('');
+    if (createdBooking) {
+      onBookingAdded?.(createdBooking);
+      setOpen(false);
+      
+      // Reset form
+      setBookingData({
+        name: '',
+        client_id: '',
+        service_ids: [],
+        date: defaultDate || '',
+        start_time: '',
+        end_time: '',
+        location: '',
+        assigned_team_member_ids: [],
+        amount: '',
+        expenses: '',
+        payment_status: 'unpaid',
+        notes: ''
+      });
+      setErrors({});
+      setShowNewClientInput(false);
+      setShowNewServiceInput(false);
+      setNewClientName('');
+      setNewServiceName('');
+    }
   };
 
   return (
@@ -225,15 +231,15 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
                   if (value === 'new-client') {
                     setShowNewClientInput(true);
                   } else {
-                    handleInputChange('client', value);
+                    handleInputChange('client_id', value);
                   }
-                }} value={bookingData.client}>
-                  <SelectTrigger className={errors.client ? 'border-red-500' : ''}>
+                }} value={bookingData.client_id}>
+                  <SelectTrigger className={errors.client_id ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select client or create new" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
-                      <SelectItem key={client} value={client}>{client}</SelectItem>
+                      <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                     ))}
                     <SelectItem value="new-client">
                       <div className="flex items-center">
@@ -260,7 +266,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
                 </Button>
               </div>
             )}
-            {errors.client && <p className="text-red-500 text-xs mt-1">{errors.client}</p>}
+            {errors.client_id && <p className="text-red-500 text-xs mt-1">{errors.client_id}</p>}
           </div>
 
           <div>
@@ -270,7 +276,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
                 <div key={service} className="flex items-center space-x-2">
                   <Checkbox
                     id={service}
-                    checked={bookingData.service.includes(service)}
+                    checked={bookingData.service_ids.includes(service)}
                     onCheckedChange={(checked) => handleServiceToggle(service, checked as boolean)}
                   />
                   <Label htmlFor={service} className="text-sm">{service}</Label>
@@ -306,12 +312,12 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
               </div>
             )}
             
-            {bookingData.service.length > 0 && (
+            {bookingData.service_ids.length > 0 && (
               <div className="mt-2">
-                <p className="text-xs text-gray-600">Selected: {bookingData.service.join(', ')}</p>
+                <p className="text-xs text-gray-600">Selected: {bookingData.service_ids.join(', ')}</p>
               </div>
             )}
-            {errors.service && <p className="text-red-500 text-xs mt-1">{errors.service}</p>}
+            {errors.service_ids && <p className="text-red-500 text-xs mt-1">{errors.service_ids}</p>}
           </div>
 
           <div>
@@ -332,22 +338,22 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
               <Input
                 id="startTime"
                 type="time"
-                value={bookingData.startTime}
-                onChange={(e) => handleInputChange('startTime', e.target.value)}
-                className={errors.startTime ? 'border-red-500' : ''}
+                value={bookingData.start_time}
+                onChange={(e) => handleInputChange('start_time', e.target.value)}
+                className={errors.start_time ? 'border-red-500' : ''}
               />
-              {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
+              {errors.start_time && <p className="text-red-500 text-xs mt-1">{errors.start_time}</p>}
             </div>
             <div>
               <Label htmlFor="endTime">End Time *</Label>
               <Input
                 id="endTime"
                 type="time"
-                value={bookingData.endTime}
-                onChange={(e) => handleInputChange('endTime', e.target.value)}
-                className={errors.endTime ? 'border-red-500' : ''}
+                value={bookingData.end_time}
+                onChange={(e) => handleInputChange('end_time', e.target.value)}
+                className={errors.end_time ? 'border-red-500' : ''}
               />
-              {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
+              {errors.end_time && <p className="text-red-500 text-xs mt-1">{errors.end_time}</p>}
             </div>
           </div>
 
@@ -364,18 +370,22 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
           <div>
             <Label>Assigned Team Members *</Label>
             <div className="space-y-2 mt-2 max-h-32 overflow-y-auto border rounded-md p-2">
-              {teamMembers.map((member) => (
-                <div key={member} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={member}
-                    checked={bookingData.assignedTo.includes(member)}
-                    onCheckedChange={(checked) => handleTeamMemberToggle(member, checked as boolean)}
-                  />
-                  <Label htmlFor={member} className="text-sm">{member}</Label>
-                </div>
-              ))}
+              {teamMembers.length === 0 ? (
+                <p className="text-sm text-gray-500">No team members available. Add team members first.</p>
+              ) : (
+                teamMembers.map((member) => (
+                  <div key={member.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={member.id}
+                      checked={bookingData.assigned_team_member_ids.includes(member.id)}
+                      onCheckedChange={(checked) => handleTeamMemberToggle(member.id, checked as boolean)}
+                    />
+                    <Label htmlFor={member.id} className="text-sm">{member.name}</Label>
+                  </div>
+                ))
+              )}
             </div>
-            {errors.assignedTo && <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>}
+            {errors.assigned_team_member_ids && <p className="text-red-500 text-xs mt-1">{errors.assigned_team_member_ids}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -409,7 +419,7 @@ const NewBookingDialog = ({ trigger, onBookingAdded, defaultDate }: NewBookingDi
 
           <div>
             <Label htmlFor="paymentStatus">Payment Status</Label>
-            <Select onValueChange={(value) => handleInputChange('paymentStatus', value)} defaultValue="unpaid">
+            <Select onValueChange={(value) => handleInputChange('payment_status', value)} defaultValue="unpaid">
               <SelectTrigger>
                 <SelectValue placeholder="Select payment status" />
               </SelectTrigger>
