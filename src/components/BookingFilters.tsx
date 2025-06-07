@@ -43,7 +43,7 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
   ];
 
   const updateFilter = (key: keyof BookingFiltersType, value: string | undefined) => {
-    onFiltersChange({ ...filters, [key]: value });
+    onFiltersChange({ ...filters, [key]: value === 'all' ? undefined : value });
   };
 
   const hasActiveFilters = Object.values(filters).some(value => value);
@@ -71,12 +71,12 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
           {/* Client Filter */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Client</label>
-            <Select value={filters.client_id || ''} onValueChange={(value) => updateFilter('client_id', value || undefined)}>
+            <Select value={filters.client_id || 'all'} onValueChange={(value) => updateFilter('client_id', value)}>
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="All clients" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All clients</SelectItem>
+                <SelectItem value="all">All clients</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.name}
@@ -89,12 +89,12 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
           {/* Status Filter */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Status</label>
-            <Select value={filters.status || ''} onValueChange={(value) => updateFilter('status', value || undefined)}>
+            <Select value={filters.status || 'all'} onValueChange={(value) => updateFilter('status', value)}>
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 {statuses.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}
@@ -107,12 +107,12 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
           {/* Team Member Filter */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Team Member</label>
-            <Select value={filters.team_member_id || ''} onValueChange={(value) => updateFilter('team_member_id', value || undefined)}>
+            <Select value={filters.team_member_id || 'all'} onValueChange={(value) => updateFilter('team_member_id', value)}>
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="All members" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All members</SelectItem>
+                <SelectItem value="all">All members</SelectItem>
                 {teamMembers.map((member) => (
                   <SelectItem key={member.id} value={member.id}>
                     {member.name}
@@ -125,12 +125,12 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
           {/* Year Filter */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Year</label>
-            <Select value={filters.year || ''} onValueChange={(value) => updateFilter('year', value || undefined)}>
+            <Select value={filters.year || 'all'} onValueChange={(value) => updateFilter('year', value)}>
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="All years" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All years</SelectItem>
+                <SelectItem value="all">All years</SelectItem>
                 {years.map((year) => (
                   <SelectItem key={year} value={year.toString()}>
                     {year}
@@ -143,12 +143,12 @@ const BookingFilters = ({ filters, onFiltersChange, onClearFilters }: BookingFil
           {/* Month Filter */}
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Month</label>
-            <Select value={filters.month || ''} onValueChange={(value) => updateFilter('month', value || undefined)}>
+            <Select value={filters.month || 'all'} onValueChange={(value) => updateFilter('month', value)}>
               <SelectTrigger className="h-8">
                 <SelectValue placeholder="All months" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All months</SelectItem>
+                <SelectItem value="all">All months</SelectItem>
                 {months.map((month) => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
