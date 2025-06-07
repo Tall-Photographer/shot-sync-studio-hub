@@ -51,7 +51,7 @@ const Team = () => {
               Add Team Member
             </Button>
           }
-          onTeamMemberAdded={handleTeamMemberAdded}
+          onMemberAdded={handleTeamMemberAdded}
         />
       </div>
 
